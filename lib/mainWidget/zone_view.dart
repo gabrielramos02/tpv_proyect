@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/mainWidget/table_view.dart';
 
-List<Map<String, dynamic>> table_list = [
+List<Map<String, dynamic>> tableList = [
   {"numero": "3", "top": "10", "left": "20"},
   {"numero": "1", "top": "100", "left": "100"},
   {"numero": "2", "top": "100", "left": "100"},
@@ -15,8 +16,12 @@ class ZoneView extends StatefulWidget {
 }
 
 class _ZoneViewState extends State<ZoneView> {
-  double top = 10;
-  double left = 20;
+  void onTablePressed(String mesa) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => TableView(mesa: mesa)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +103,7 @@ class _ZoneViewState extends State<ZoneView> {
           Expanded(
             child: Stack(
               children: [
-                ...table_list.map((index) {
+                ...tableList.map((index) {
                   return Positioned(
                     top: double.parse(index["top"]),
                     left: double.parse(index["left"]),
@@ -150,7 +155,8 @@ class _ZoneViewState extends State<ZoneView> {
                               borderRadius: BorderRadius.circular(1),
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () =>
+                              onTablePressed(index["numero".toString()]),
                           child: Text(
                             index["numero"].toString(),
                             style: Theme.of(context).textTheme.titleLarge,

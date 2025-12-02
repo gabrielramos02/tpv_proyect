@@ -30,7 +30,7 @@ class ProductTypes extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {},
+                    onPressed: () {Navigator.pop(context);},
                     child: Text(
                       "Exit",
                       style: Theme.of(context).textTheme.titleLarge,

@@ -26,7 +26,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: const TableView(),
+      initialRoute: "/zoneview",
+      routes: {'/zoneview': (context) => const ZoneView(),}
     );
   }
 }

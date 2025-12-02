@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_proyect/utils/proyect_styles.dart';
+import 'package:function_tree/function_tree.dart';
 
 TextEditingController inputController = TextEditingController(text: "");
 
@@ -23,17 +25,9 @@ class _KeyboardState extends State<Keyboard> {
               color: Theme.of(context).primaryColor,
               padding: EdgeInsets.all(8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.end,
                 spacing: 3,
                 children: [
-                  Container(
-                    color: Colors.white70,
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Total: ad",
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
                   Row(
                     children: [
                       Container(
@@ -53,7 +47,7 @@ class _KeyboardState extends State<Keyboard> {
                             textAlign: TextAlign.end,
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
-                                RegExp(r"^[0-9]+\.?[0-9]*"),
+                                RegExp(r'^[0-9+*/.-]*$'),
                               ),
                             ],
                             onChanged: (text) {
@@ -233,7 +227,23 @@ class _KeyboardState extends State<Keyboard> {
                       children: [
                         Expanded(
                           flex: 1,
-                          child: _buildButtonKeyboard(context, "<-"),
+                          child: Container(
+                            margin: EdgeInsets.all(4),
+                            child: ElevatedButton(
+                              style: ProyectStyles.buttonStyles(context),
+                              onPressed: () {
+                                inputController.text = inputController.text
+                                    .substring(
+                                      0,
+                                      inputController.text.length - 1,
+                                    );
+                              },
+                              child: Text(
+                                "<-",
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                            ),
+                          ),
                         ),
                         Expanded(
                           flex: 1,
@@ -245,7 +255,28 @@ class _KeyboardState extends State<Keyboard> {
                         ),
                         Expanded(
                           flex: 2,
-                          child: _buildButtonText(context, "Enter"),
+                          child: Container(
+                            margin: EdgeInsets.all(4),
+                            child: ElevatedButton(
+                              style: ProyectStyles.buttonStyles(context),
+                              onPressed: () {
+                                final expression = inputController.text;
+                                try {
+                                  final result = expression
+                                      .interpret()
+                                      .toDouble();
+                                  inputController.text = result.toString();
+                                } catch (e) {
+                                  inputController.text = double.nan.toString();
+                                }
+                              },
+                              child: Text(
+                                "Enter",
+                                style: Theme.of(context).textTheme.titleMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -264,13 +295,11 @@ Widget _buildButtonKeyboard(BuildContext context, String label) {
   return Container(
     margin: EdgeInsets.all(4),
     child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).primaryColorLight,
-        alignment: AlignmentGeometry.center,
-        side: BorderSide(color: Colors.black),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
-      ),
-      onPressed: () {},
+      style: ProyectStyles.buttonStyles(context),
+      onPressed: () {
+        inputController.text += label;
+        print(inputController.text);
+      },
       child: Text(label, style: Theme.of(context).textTheme.titleLarge),
     ),
   );
@@ -280,12 +309,7 @@ Widget _buildButtonText(BuildContext context, String label) {
   return Container(
     margin: EdgeInsets.all(4),
     child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).primaryColorLight,
-        alignment: AlignmentGeometry.center,
-        side: BorderSide(color: Colors.black),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
-      ),
+      style: ProyectStyles.buttonStyles(context),
       onPressed: () {},
       child: Text(
         label,

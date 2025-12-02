@@ -23,7 +23,8 @@ final List<Map<String, dynamic>> products = [
 ];
 
 class TableView extends StatefulWidget {
-  const TableView({super.key});
+  const TableView({super.key,required this.mesa});
+  final String mesa;
 
   @override
   State<TableView> createState() => _TableViewState();
@@ -156,6 +157,7 @@ class _TableViewState extends State<TableView> {
                     child: ProductList(
                       items: items,
                       onSelectProduct: onEditProductList,
+                      mesa: widget.mesa,
                     ),
                   ),
                   Flexible(child: Keyboard()),

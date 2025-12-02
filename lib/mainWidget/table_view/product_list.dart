@@ -5,11 +5,12 @@ class ProductList extends StatelessWidget {
     super.key,
     required this.items,
     required this.onSelectProduct,
+    required this.mesa,
   });
   final List<Map<String, dynamic>> items;
   final void Function(Map<String, dynamic>) onSelectProduct;
+  final String mesa;
 
-  final String mesa = "20";
   int totalCantidad() {
     return items.fold(0, (sum, item) => sum + item['cantidad'] as int);
   }
@@ -17,8 +18,7 @@ class ProductList extends StatelessWidget {
   double totalPrecio() {
     return items.fold(
       0,
-      (sum, item) =>
-          sum + ((item['cantidad']) * item['precio']),
+      (sum, item) => sum + ((item['cantidad']) * item['precio']),
     );
   }
 
