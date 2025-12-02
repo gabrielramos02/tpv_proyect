@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 import 'package:function_tree/function_tree.dart';
 
@@ -13,6 +14,13 @@ class Keyboard extends StatefulWidget {
 }
 
 class _KeyboardState extends State<Keyboard> {
+  void onCheckout() {
+    final result = showDialog(
+      context: context,
+      builder: (context) => Checkout(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,7 +92,20 @@ class _KeyboardState extends State<Keyboard> {
                             children: [
                               Expanded(child: Container()),
                               Expanded(
-                                child: _buildButtonText(context, "Cobrar"),
+                                child: Container(
+                                  margin: EdgeInsets.all(4),
+                                  child: ElevatedButton(
+                                    style: ProyectStyles.buttonStyles(context),
+                                    onPressed: () {onCheckout();},
+                                    child: Text(
+                                      "Cobrar",
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
                               ),
                               Expanded(child: Container()),
                             ],
