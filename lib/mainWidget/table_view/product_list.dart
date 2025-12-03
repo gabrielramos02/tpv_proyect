@@ -53,17 +53,12 @@ class ProductList extends StatelessWidget {
               child: Container(
                 margin: EdgeInsets.only(top: 4),
                 child: Table(
-                  // 1. Define los anchos de las columnas (opcional pero recomendado)
                   columnWidths: const <int, TableColumnWidth>{
-                    0: IntrinsicColumnWidth(), // Columna 1: se ajusta al contenido más grande
-                    1: FlexColumnWidth(
-                      2,
-                    ), // Columna 2: ocupa el doble de espacio que las FlexColumnWidth(1)
-                    2: FlexColumnWidth(
-                      1,
-                    ), // Columna 3: ocupa el espacio restante
+                    0: IntrinsicColumnWidth(),
+                    1: FlexColumnWidth(2),
+                    2: IntrinsicColumnWidth(),
+                    3: IntrinsicColumnWidth(),
                   },
-                  // 2. Define el borde (opcional)
                   border: TableBorder.all(color: Colors.grey, width: 1.0),
                   children: [
                     // Fila del encabezado
@@ -72,6 +67,17 @@ class ProductList extends StatelessWidget {
                         color: Theme.of(context).primaryColor,
                       ),
                       children: <Widget>[
+                        TableCell(
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              'Cant.',
+                              style: Theme.of(
+                                context,
+                              ).primaryTextTheme.labelLarge,
+                            ),
+                          ),
+                        ),
                         TableCell(
                           child: Padding(
                             padding: EdgeInsets.all(8.0),
@@ -87,7 +93,7 @@ class ProductList extends StatelessWidget {
                           child: Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
-                              'Cantidad',
+                              'PVP',
                               style: Theme.of(
                                 context,
                               ).primaryTextTheme.labelLarge,
@@ -98,7 +104,7 @@ class ProductList extends StatelessWidget {
                           child: Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
-                              'Precio',
+                              'Importe',
                               style: Theme.of(
                                 context,
                               ).primaryTextTheme.labelLarge,
@@ -107,11 +113,24 @@ class ProductList extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // Primera fila de datos
-                    // Filas de datos (generadas dinámicamente)
                     ...items.map((item) {
                       return TableRow(
                         children: <Widget>[
+                          TableCell(
+                            child: InkWell(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  item['cantidad'].toString(),
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                              onTap: () {
+                                onSelectProduct(item);
+                              },
+                            ),
+                          ),
                           TableCell(
                             child: InkWell(
                               child: Padding(
@@ -131,8 +150,9 @@ class ProductList extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  item['cantidad'].toString(),
+                                  "${item['precio'].toString()}€",
                                   style: Theme.of(context).textTheme.labelLarge,
+                                  textAlign: TextAlign.end,
                                 ),
                               ),
                               onTap: () {
@@ -140,14 +160,14 @@ class ProductList extends StatelessWidget {
                               },
                             ),
                           ),
-                          // Se calcula el precio total por item (Cantidad * Precio Unitario)
                           TableCell(
                             child: InkWell(
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  '\$${(item['cantidad'] as int) * (item['precio'] as int)}',
+                                  '${(item['cantidad'] as int) * (item['precio'] as int)}€',
                                   style: Theme.of(context).textTheme.labelLarge,
+                                  textAlign: TextAlign.end,
                                 ),
                               ),
                               onTap: () {

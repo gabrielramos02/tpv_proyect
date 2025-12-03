@@ -17,7 +17,7 @@ class _KeyboardState extends State<Keyboard> {
   void onCheckout() {
     final result = showDialog(
       context: context,
-      builder: (context) => Checkout(),
+      builder: (context) => Checkout(precio: "12.2",),
     );
   }
 
@@ -132,7 +132,7 @@ class _KeyboardState extends State<Keyboard> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(child: Container()),
-                              Expanded(child: _buildButtonText(context, "2")),
+                              Expanded(child: Container()),
                               Expanded(child: Container()),
                             ],
                           ),
