@@ -1,12 +1,9 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
-
-List<Map<String, dynamic>> tableList = [
-  {"numero": "3", "top": "10", "left": "20"},
-  {"numero": "1", "top": "100", "left": "100"},
-  {"numero": "2", "top": "100", "left": "100"},
-  {"numero": "4", "top": "100", "left": "100"},
-];
+import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 class ZoneView extends StatefulWidget {
   const ZoneView({super.key});
@@ -16,11 +13,91 @@ class ZoneView extends StatefulWidget {
 }
 
 class _ZoneViewState extends State<ZoneView> {
+  List<RestTable> tableList = [];
+  bool deleteTable = false;
+  bool showSnackBar = false;
+  @override
+  void initState() {
+    super.initState();
+    getTables();
+  }
+
+  Future<void> getTables() async {
+    final result = await database.select(database.restTables).get();
+    setState(() {
+      tableList = result;
+    });
+  }
+
+  Future<void> onDragEnd(RestTable table) async {
+    await database.update(database.restTables).replace(table);
+    final result = await database.select(database.restTables).get();
+    setState(() {
+      tableList = result;
+    });
+  }
+
+  Future<void> onAddTable() async {
+    int totalTables = tableList.length;
+    await database
+        .into(database.restTables)
+        .insert(
+          RestTablesCompanion.insert(
+            number: "${totalTables + 1}",
+            top: 10,
+            left: 20,
+            state: 0,
+          ),
+        );
+    final result = await database.select(database.restTables).get();
+    setState(() {
+      tableList = result;
+    });
+  }
+
+  Future<void> onDeleteTable(RestTable table) async {
+    (database.delete(
+      database.restTables,
+    )..where((e) => e.id.isValue(table.id))).go();
+    final result = await database.select(database.restTables).get();
+    setState(() {
+      deleteTable = !deleteTable;
+      tableList = result;
+    });
+  }
+
+  Future<void> onExit() async {
+    (database.delete(
+      database.restTables,
+    )..where((e) => e.top.isBiggerThanValue(5))).go();
+    final result = await database.select(database.restTables).get();
+    setState(() {
+      tableList = result;
+    });
+  }
+
   void onTablePressed(String mesa) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TableView(mesa: mesa)),
     );
+  }
+
+  void onShowSnackBar() {
+    final snackBar = SnackBar(
+      content: Text(
+        'Toca una mesa para eliminarla',
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
+      duration: Duration(seconds: 9999),
+      backgroundColor: Colors.red,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void hideSnackBar() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
   }
 
   @override
@@ -37,15 +114,50 @@ class _ZoneViewState extends State<ZoneView> {
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColorLight,
-                      alignment: AlignmentGeometry.center,
-                      side: BorderSide(color: Colors.black),
-                      padding: EdgeInsets.all(14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(1),
-                      ),
+                    style: ProyectStyles.buttonStyles(context),
+                    onPressed: () {
+                      if (!showSnackBar) {
+                        onShowSnackBar();
+                        setState(() {
+                          showSnackBar = true;
+                          deleteTable = true;
+                        });
+                      } else {
+                        hideSnackBar();
+                        setState(() {
+                          showSnackBar = false;
+                          deleteTable = false;
+                        });
+                      }
+                    },
+                    child: Text(
+                      "Eliminar Mesa",
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
                     ),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  child: ElevatedButton(
+                    style: ProyectStyles.buttonStyles(context),
+                    onPressed: () async {
+                      setState(() {
+                        deleteTable = true;
+                      });
+                      await onAddTable();
+                    },
+                    child: Text(
+                      "Agregar Mesa",
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  child: ElevatedButton(
+                    style: ProyectStyles.buttonStyles(context),
                     onPressed: () {},
                     child: Text(
                       "Config",
@@ -57,15 +169,7 @@ class _ZoneViewState extends State<ZoneView> {
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColorLight,
-                      alignment: AlignmentGeometry.center,
-                      side: BorderSide(color: Colors.black),
-                      padding: EdgeInsets.all(14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(1),
-                      ),
-                    ),
+                    style: ProyectStyles.buttonStyles(context),
                     onPressed: () {},
                     child: Text(
                       "Caja",
@@ -77,19 +181,10 @@ class _ZoneViewState extends State<ZoneView> {
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColorLight,
-                      alignment: AlignmentGeometry.center,
-                      side: BorderSide(color: Colors.black),
-                      padding: EdgeInsets.symmetric(
-                        vertical: 14,
-                        horizontal: 23,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(1),
-                      ),
-                    ),
-                    onPressed: () {},
+                    style: ProyectStyles.buttonStyles(context),
+                    onPressed: () async {
+                      await onExit();
+                    },
                     child: Text(
                       "Exit",
                       style: Theme.of(context).textTheme.titleLarge,
@@ -105,19 +200,20 @@ class _ZoneViewState extends State<ZoneView> {
               children: [
                 ...tableList.map((index) {
                   return Positioned(
-                    top: double.parse(index["top"]),
-                    left: double.parse(index["left"]),
+                    top: index.top,
+                    left: index.left,
                     child: LongPressDraggable(
                       onDragEnd: (details) {
-                        setState(() {
-                          index["top"] = (details.offset.dy - 56).toString();
-                          index["left"] = details.offset.dx.toString();
-                        });
+                        final newPositionTable = index.copyWith(
+                          top: (details.offset.dy - 56),
+                          left: details.offset.dx,
+                        );
+                        onDragEnd(newPositionTable);
                       },
                       onDragStarted: () {},
                       feedback: Container(
-                        width: 100,
-                        height: 100,
+                        width: 80,
+                        height: 80,
                         margin: EdgeInsets.all(5),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -133,15 +229,15 @@ class _ZoneViewState extends State<ZoneView> {
                           ),
                           onPressed: () {},
                           child: Text(
-                            index["numero"].toString(),
+                            index.number,
                             style: Theme.of(context).textTheme.titleMedium,
                             textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                       child: Container(
-                        width: 100,
-                        height: 100,
+                        width: 80,
+                        height: 80,
                         margin: EdgeInsets.all(5),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -155,10 +251,16 @@ class _ZoneViewState extends State<ZoneView> {
                               borderRadius: BorderRadius.circular(1),
                             ),
                           ),
-                          onPressed: () =>
-                              onTablePressed(index["numero".toString()]),
+                          onPressed: () async {
+                            if (deleteTable) {
+                              hideSnackBar();
+                              await onDeleteTable(index);
+                            } else {
+                              onTablePressed(index.number);
+                            }
+                          },
                           child: Text(
-                            index["numero"].toString(),
+                            index.number,
                             style: Theme.of(context).textTheme.titleLarge,
                             textAlign: TextAlign.center,
                           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
 
 class ProductList extends StatelessWidget {
   const ProductList({
@@ -7,18 +8,18 @@ class ProductList extends StatelessWidget {
     required this.onSelectProduct,
     required this.mesa,
   });
-  final List<Map<String, dynamic>> items;
-  final void Function(Map<String, dynamic>) onSelectProduct;
+  final List<OrderLine> items;
+  final void Function(Map<String,dynamic>) onSelectProduct;
   final String mesa;
 
   int totalCantidad() {
-    return items.fold(0, (sum, item) => sum + item['cantidad'] as int);
+    return items.fold(0, (sum, item) => sum + item.quantity);
   }
 
   double totalPrecio() {
     return items.fold(
       0,
-      (sum, item) => sum + ((item['cantidad']) * item['precio']),
+      (sum, item) => sum + ((item.quantity) * item.currentPrice),
     );
   }
 
@@ -121,13 +122,13 @@ class ProductList extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  item['cantidad'].toString(),
+                                  item.quantity.toString(),
                                   style: Theme.of(context).textTheme.labelLarge,
                                   textAlign: TextAlign.end,
                                 ),
                               ),
                               onTap: () {
-                                onSelectProduct(item);
+                                onSelectProduct(item.toJson());
                               },
                             ),
                           ),
@@ -136,12 +137,12 @@ class ProductList extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  item['producto'].toString(),
+                                  item.productName.toString(),
                                   style: Theme.of(context).textTheme.labelLarge,
                                 ),
                               ),
                               onTap: () {
-                                onSelectProduct(item);
+                                onSelectProduct(item.toJson());
                               },
                             ),
                           ),
@@ -150,13 +151,13 @@ class ProductList extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  "${item['precio'].toString()}€",
+                                  "${item.currentPrice.toString()}€",
                                   style: Theme.of(context).textTheme.labelLarge,
                                   textAlign: TextAlign.end,
                                 ),
                               ),
                               onTap: () {
-                                onSelectProduct(item);
+                                onSelectProduct(item.toJson());
                               },
                             ),
                           ),
@@ -165,13 +166,13 @@ class ProductList extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  '${(item['cantidad'] as int) * (item['precio'] as int)}€',
+                                  '${(item.quantity) * (item.currentPrice as int)}€',
                                   style: Theme.of(context).textTheme.labelLarge,
                                   textAlign: TextAlign.end,
                                 ),
                               ),
                               onTap: () {
-                                onSelectProduct(item);
+                                onSelectProduct(item.toJson());
                               },
                             ),
                           ),

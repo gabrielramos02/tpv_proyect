@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class EditForm extends StatefulWidget {
   const EditForm({super.key, required this.productType});
-  final Map<String, dynamic> productType;
+  final Map productType;
 
   @override
   State<EditForm> createState() => _EditFormState();
 }
 
 class _EditFormState extends State<EditForm> {
-  Map<String, dynamic> response = {};
+  Map response = {};
 
   @override
   Widget build(BuildContext context) {

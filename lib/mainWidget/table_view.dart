@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/table_view/edit_product.dart';
 import 'package:flutter_proyect/mainWidget/table_view/keyboard.dart';
 import 'package:flutter_proyect/mainWidget/table_view/product_list.dart';
@@ -23,7 +25,7 @@ final List<Map<String, dynamic>> products = [
 ];
 
 class TableView extends StatefulWidget {
-  const TableView({super.key,required this.mesa});
+  const TableView({super.key, required this.mesa});
   final String mesa;
 
   @override
@@ -31,7 +33,31 @@ class TableView extends StatefulWidget {
 }
 
 class _TableViewState extends State<TableView> {
+  List<OrderLine> orderLines = [];
   String _selectedType = "";
+  @override
+  @override
+  void initState() {
+    super.initState();
+    getLines();
+  }
+
+  Future<void> getLines() async {
+    final response = await (database.select(database.orderLines).join([
+      drift.innerJoin(
+        database.orders,
+        database.orders.id.equalsExp(database.orderLines.id),
+      ),
+    ])..where(database.orders.name.equals(widget.mesa))).get();
+    final result = response
+        .map((row) => row.readTable(database.orderLines))
+        .toList();
+
+    setState(() {
+      orderLines = result;
+    });
+  }
+
   void _selectType(String type) {
     setState(() {
       _selectedType = type;
@@ -45,11 +71,14 @@ class _TableViewState extends State<TableView> {
     });
   }
 
-  void onSaveEdit(Map<String, dynamic> newProduct) {
+  Future<void> onSaveEdit(Map<String, dynamic> updatedProduct) async {
+    await database
+        .update(database.orderLines)
+        .replace(OrderLine.fromJson(updatedProduct));
+final updatedDB = await database.select(database.orderLines).get();
     setState(() {
-      items.remove(_editedProduct);
-      items.add(newProduct);
-      _editedProduct = newProduct;
+        orderLines = updatedDB;
+      _editedProduct = updatedProduct;
     });
     print(items);
   }
@@ -86,7 +115,7 @@ class _TableViewState extends State<TableView> {
     );
 
     if (result.isNotEmpty) {
-      print('Datos recibidos: ${result["nombre"]}'); 
+      print('Datos recibidos: ${result["nombre"]}');
       setState(() {
         productTypes.remove(product);
         productTypes.add(result);
@@ -105,7 +134,7 @@ class _TableViewState extends State<TableView> {
     );
 
     if (result.isNotEmpty) {
-      print('Datos recibidos: ${result["nombre"]}'); 
+      print('Datos recibidos: ${result["nombre"]}');
       setState(() {
         productTypes.add(result);
       });
@@ -129,6 +158,7 @@ class _TableViewState extends State<TableView> {
       });
     }
   }
+
   void onAddProduct() async {
     final result = await showDialog(
       context: context,
@@ -136,7 +166,7 @@ class _TableViewState extends State<TableView> {
     );
 
     if (result.isNotEmpty) {
-      print('Datos recibidos: ${result["nombre"]}'); 
+      print('Datos recibidos: ${result["nombre"]}');
       setState(() {
         products.add(result);
       });
@@ -155,7 +185,7 @@ class _TableViewState extends State<TableView> {
                 children: [
                   Flexible(
                     child: ProductList(
-                      items: items,
+                      items: orderLines,
                       onSelectProduct: onEditProductList,
                       mesa: widget.mesa,
                     ),
@@ -171,6 +201,7 @@ class _TableViewState extends State<TableView> {
                     return Column(
                       children: [
                         Flexible(
+                        //TODO: all functions to Tables
                           child: ProductTypes(
                             productTypesList: productTypes,
                             onSelectType: _selectType,
@@ -179,6 +210,7 @@ class _TableViewState extends State<TableView> {
                           ),
                         ),
                         Flexible(
+                        //TODO: all functions to Tables
                           child: Products(
                             productsList: products.toList().where((index) {
                               return index["familia"] == _selectedType;

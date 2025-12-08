@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/mainWidget/zone_view.dart';
-import 'mainWidget/my_home_page.dart';
-import 'mainWidget/table_view.dart';
+
+final database = AppDatabase();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
       initialRoute: "/zoneview",
-      routes: {'/zoneview': (context) => const ZoneView(),}
+      routes: {'/zoneview': (context) => const ZoneView()},
     );
   }
 }
