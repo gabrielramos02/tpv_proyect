@@ -1,43 +1,41 @@
 import 'package:flutter/material.dart';
-List fields = ["nombre"];
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
 
 class AddTypesForm extends StatefulWidget {
-  const AddTypesForm({super.key,});
+  const AddTypesForm({super.key});
 
   @override
   State<AddTypesForm> createState() => _AddTypesFormState();
 }
 
 class _AddTypesFormState extends State<AddTypesForm> {
-  Map<String, dynamic> response = {};
+  String name = "";
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-    actionsAlignment: MainAxisAlignment.spaceBetween,
+      actionsAlignment: MainAxisAlignment.spaceBetween,
       title: Text('Familia'),
       content: Form(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            ...fields.map((index) {
-              return TextFormField(
-                decoration: InputDecoration(
-                  labelText: index.toUpperCase(),
-                  labelStyle: Theme.of(context).textTheme.bodyLarge,
-                ),
-                onChanged: (text) {
-                  response.addAll({index:text});
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingresa un nombre';
-                  }
-                  return null;
-                },
-              );
-            }),
+            TextFormField(
+              decoration: InputDecoration(
+                labelText: "Nombre",
+                labelStyle: Theme.of(context).textTheme.bodyLarge,
+              ),
+              onChanged: (text) {
+                name = text;
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Ingresa el nombre';
+                }
+                return null;
+              },
+            ),
           ],
         ),
       ),
@@ -46,10 +44,11 @@ class _AddTypesFormState extends State<AddTypesForm> {
           onPressed: () {
             Navigator.of(context).pop(Map());
           },
-          child: const Text('Remove'),
+          child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: () {
+              final ProductTypesTableCompanion response = ProductTypesTableCompanion.insert(name: name, color: "", order: 0);
             Navigator.of(context).pop(response);
           },
           child: const Text('OK'),

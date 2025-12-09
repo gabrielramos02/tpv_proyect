@@ -34,12 +34,15 @@ class TableView extends StatefulWidget {
 
 class _TableViewState extends State<TableView> {
   List<OrderLine> orderLines = [];
-  String _selectedType = "";
-  @override
+  List<ProductTypesTableData> productTypes = [];
+  List<ProductsClassData> products = [];
+  int _selectedType = 99;
   @override
   void initState() {
     super.initState();
     getLines();
+    getProductTypes();
+    getProducts();
   }
 
   Future<void> getLines() async {
@@ -52,16 +55,30 @@ class _TableViewState extends State<TableView> {
     final result = response
         .map((row) => row.readTable(database.orderLines))
         .toList();
-
     setState(() {
       orderLines = result;
     });
   }
 
-  void _selectType(String type) {
+  Future<void> getProductTypes() async {
+    final response = await database.select(database.productTypesTable).get();
+    setState(() {
+      productTypes = response;
+    });
+  }
+
+  Future<void> getProducts() async {
+    final response = await database.select(database.productsClass).get();
+    setState(() {
+      products = response;
+    });
+  }
+
+  void _selectType(int type) {
     setState(() {
       _selectedType = type;
     });
+    print(type);
   }
 
   Map<String, dynamic> _editedProduct = {};
@@ -75,12 +92,11 @@ class _TableViewState extends State<TableView> {
     await database
         .update(database.orderLines)
         .replace(OrderLine.fromJson(updatedProduct));
-final updatedDB = await database.select(database.orderLines).get();
+    final updatedDB = await database.select(database.orderLines).get();
     setState(() {
-        orderLines = updatedDB;
+      orderLines = updatedDB;
       _editedProduct = updatedProduct;
     });
-    print(items);
   }
 
   void onCancelEdit() {
@@ -108,21 +124,21 @@ final updatedDB = await database.select(database.orderLines).get();
     });
   }
 
-  void onEditProductType(Map<String, dynamic> product) async {
+  void onEditProductType(Map<String, dynamic> productType) async {
     final result = await showDialog(
       context: context,
-      builder: (context) => EditForm(productType: product),
+      builder: (context) => EditForm(productType: productType),
     );
 
     if (result.isNotEmpty) {
       print('Datos recibidos: ${result["nombre"]}');
       setState(() {
-        productTypes.remove(product);
+        productTypes.remove(productType);
         productTypes.add(result);
       });
     } else {
       setState(() {
-        productTypes.remove(product);
+        productTypes.remove(productType);
       });
     }
   }
@@ -133,11 +149,14 @@ final updatedDB = await database.select(database.orderLines).get();
       builder: (context) => AddTypesForm(),
     );
 
-    if (result.isNotEmpty) {
-      print('Datos recibidos: ${result["nombre"]}');
+    if (result != {}) {
+      await database.into(database.productTypesTable).insert(result);
+      final updatedDB = await database.select(database.productTypesTable).get();
+
       setState(() {
-        productTypes.add(result);
+        productTypes = updatedDB;
       });
+      print(productTypes.toList());
     }
   }
 
@@ -148,13 +167,20 @@ final updatedDB = await database.select(database.orderLines).get();
     );
 
     if (result.isNotEmpty) {
+      await database
+          .update(database.productsClass)
+          .replace(ProductsClassData.fromJson(product));
+      final updatedDB = await database.select(database.productsClass).get();
       setState(() {
-        products.remove(product);
-        products.add(result);
+        products = updatedDB;
       });
     } else {
+      await (database.delete(
+        database.productsClass,
+      )..where((e) => e.id.isValue(product["id"] as int))).go();
+      final updatedDB = await database.select(database.productsClass).get();
       setState(() {
-        products.remove(product);
+        products = updatedDB;
       });
     }
   }
@@ -165,10 +191,11 @@ final updatedDB = await database.select(database.orderLines).get();
       builder: (context) => AddProductsForm(),
     );
 
-    if (result.isNotEmpty) {
-      print('Datos recibidos: ${result["nombre"]}');
+    if (result != {}) {
+      await database.into(database.productsClass).insert(result);
+      final updatedDB = await database.select(database.productsClass).get();
       setState(() {
-        products.add(result);
+        products = updatedDB;
       });
     }
   }
@@ -201,21 +228,19 @@ final updatedDB = await database.select(database.orderLines).get();
                     return Column(
                       children: [
                         Flexible(
-                        //TODO: all functions to Tables
                           child: ProductTypes(
                             productTypesList: productTypes,
                             onSelectType: _selectType,
+                          //TODO: edit product
                             onEditType: onEditProductType,
                             onAddType: onAddProductType,
                           ),
                         ),
                         Flexible(
-                        //TODO: all functions to Tables
                           child: Products(
-                            productsList: products.toList().where((index) {
-                              return index["familia"] == _selectedType;
-                            }).toList(),
-                            onEditType: onEditProduct,
+                            productsList: products,
+                            //TODO edit product
+                            onEditProduct: onEditProduct,
                             onAddProduct: onAddProduct,
                           ),
                         ),

@@ -910,11 +910,11 @@ class $ProductsClassTable extends ProductsClass
   );
   static const VerificationMeta _colorMeta = const VerificationMeta('color');
   @override
-  late final GeneratedColumn<double> color = GeneratedColumn<double>(
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
     'color',
     aliasedName,
     false,
-    type: DriftSqlType.double,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _orderMeta = const VerificationMeta('order');
@@ -1045,7 +1045,7 @@ class $ProductsClassTable extends ProductsClass
         data['${effectivePrefix}price'],
       )!,
       color: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
+        DriftSqlType.string,
         data['${effectivePrefix}color'],
       )!,
       order: attachedDatabase.typeMapping.read(
@@ -1074,7 +1074,7 @@ class ProductsClassData extends DataClass
   final int id;
   final String name;
   final double price;
-  final double color;
+  final String color;
   final int order;
   final int type;
   final int taxes;
@@ -1093,7 +1093,7 @@ class ProductsClassData extends DataClass
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['price'] = Variable<double>(price);
-    map['color'] = Variable<double>(color);
+    map['color'] = Variable<String>(color);
     map['order'] = Variable<int>(order);
     map['type'] = Variable<int>(type);
     map['taxes'] = Variable<int>(taxes);
@@ -1121,7 +1121,7 @@ class ProductsClassData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       price: serializer.fromJson<double>(json['price']),
-      color: serializer.fromJson<double>(json['color']),
+      color: serializer.fromJson<String>(json['color']),
       order: serializer.fromJson<int>(json['order']),
       type: serializer.fromJson<int>(json['type']),
       taxes: serializer.fromJson<int>(json['taxes']),
@@ -1134,7 +1134,7 @@ class ProductsClassData extends DataClass
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'price': serializer.toJson<double>(price),
-      'color': serializer.toJson<double>(color),
+      'color': serializer.toJson<String>(color),
       'order': serializer.toJson<int>(order),
       'type': serializer.toJson<int>(type),
       'taxes': serializer.toJson<int>(taxes),
@@ -1145,7 +1145,7 @@ class ProductsClassData extends DataClass
     int? id,
     String? name,
     double? price,
-    double? color,
+    String? color,
     int? order,
     int? type,
     int? taxes,
@@ -1203,7 +1203,7 @@ class ProductsClassCompanion extends UpdateCompanion<ProductsClassData> {
   final Value<int> id;
   final Value<String> name;
   final Value<double> price;
-  final Value<double> color;
+  final Value<String> color;
   final Value<int> order;
   final Value<int> type;
   final Value<int> taxes;
@@ -1220,7 +1220,7 @@ class ProductsClassCompanion extends UpdateCompanion<ProductsClassData> {
     this.id = const Value.absent(),
     required String name,
     required double price,
-    required double color,
+    required String color,
     required int order,
     required int type,
     required int taxes,
@@ -1234,7 +1234,7 @@ class ProductsClassCompanion extends UpdateCompanion<ProductsClassData> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<double>? price,
-    Expression<double>? color,
+    Expression<String>? color,
     Expression<int>? order,
     Expression<int>? type,
     Expression<int>? taxes,
@@ -1254,7 +1254,7 @@ class ProductsClassCompanion extends UpdateCompanion<ProductsClassData> {
     Value<int>? id,
     Value<String>? name,
     Value<double>? price,
-    Value<double>? color,
+    Value<String>? color,
     Value<int>? order,
     Value<int>? type,
     Value<int>? taxes,
@@ -1283,7 +1283,7 @@ class ProductsClassCompanion extends UpdateCompanion<ProductsClassData> {
       map['price'] = Variable<double>(price.value);
     }
     if (color.present) {
-      map['color'] = Variable<double>(color.value);
+      map['color'] = Variable<String>(color.value);
     }
     if (order.present) {
       map['order'] = Variable<int>(order.value);
@@ -3722,7 +3722,7 @@ typedef $$ProductsClassTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required double price,
-      required double color,
+      required String color,
       required int order,
       required int type,
       required int taxes,
@@ -3732,7 +3732,7 @@ typedef $$ProductsClassTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<double> price,
-      Value<double> color,
+      Value<String> color,
       Value<int> order,
       Value<int> type,
       Value<int> taxes,
@@ -3809,7 +3809,7 @@ class $$ProductsClassTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get color => $composableBuilder(
+  ColumnFilters<String> get color => $composableBuilder(
     column: $table.color,
     builder: (column) => ColumnFilters(column),
   );
@@ -3890,7 +3890,7 @@ class $$ProductsClassTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get color => $composableBuilder(
+  ColumnOrderings<String> get color => $composableBuilder(
     column: $table.color,
     builder: (column) => ColumnOrderings(column),
   );
@@ -3965,7 +3965,7 @@ class $$ProductsClassTableAnnotationComposer
   GeneratedColumn<double> get price =>
       $composableBuilder(column: $table.price, builder: (column) => column);
 
-  GeneratedColumn<double> get color =>
+  GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
 
   GeneratedColumn<int> get order =>
@@ -4050,7 +4050,7 @@ class $$ProductsClassTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<double> price = const Value.absent(),
-                Value<double> color = const Value.absent(),
+                Value<String> color = const Value.absent(),
                 Value<int> order = const Value.absent(),
                 Value<int> type = const Value.absent(),
                 Value<int> taxes = const Value.absent(),
@@ -4068,7 +4068,7 @@ class $$ProductsClassTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required double price,
-                required double color,
+                required String color,
                 required int order,
                 required int type,
                 required int taxes,

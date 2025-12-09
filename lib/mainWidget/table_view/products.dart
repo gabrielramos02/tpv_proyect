@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
 
 class Products extends StatelessWidget {
-    final List<Map<String, dynamic>> productsList;
-  final void Function(Map<String, dynamic>) onEditType;
+  final List<ProductsClassData> productsList;
+  final void Function(Map<String, dynamic>) onEditProduct;
   final void Function() onAddProduct;
-  const Products({super.key,required this.productsList,required this.onEditType,required this.onAddProduct});
-
-  @override
+  const Products({
+    super.key,
+    required this.productsList,
+    required this.onEditProduct,
+    required this.onAddProduct,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,38 +41,41 @@ class Products extends StatelessWidget {
                             borderRadius: BorderRadius.circular(1),
                           ),
                         ),
-                        onPressed: () {},
-                        onLongPress: (){
-                                onEditType(index);
-                            },
+                        onPressed: () {
+                        },
+                        onLongPress: () {
+                          onEditProduct(index.toJson());
+                        },
                         child: Text(
-                        index["nombre"].toString(),
+                          index.name,
                           style: Theme.of(context).textTheme.titleMedium,
                           textAlign: TextAlign.center,
                         ),
                       ),
                     );
                   }),
-                    Container(
-                      margin: EdgeInsets.all(5),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColorLight,
-                          alignment: AlignmentGeometry.center,
-                          side: BorderSide(color: Colors.black),
-                          padding: EdgeInsets.all(14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                        onPressed: () {onAddProduct();},
-                        child: Text(
-                        "+",
-                          style: Theme.of(context).textTheme.headlineLarge,
-                          textAlign: TextAlign.center,
+                  Container(
+                    margin: EdgeInsets.all(5),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColorLight,
+                        alignment: AlignmentGeometry.center,
+                        side: BorderSide(color: Colors.black),
+                        padding: EdgeInsets.all(14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(1),
                         ),
                       ),
-                    )
+                      onPressed: () {
+                        onAddProduct();
+                      },
+                      child: Text(
+                        "+",
+                        style: Theme.of(context).textTheme.headlineLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -78,5 +85,3 @@ class Products extends StatelessWidget {
     );
   }
 }
-
-

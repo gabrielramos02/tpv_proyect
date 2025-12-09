@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 class ProductTypes extends StatelessWidget {
@@ -9,8 +10,8 @@ class ProductTypes extends StatelessWidget {
     required this.onEditType,
     required this.onAddType,
   });
-  final List<Map<String, dynamic>> productTypesList;
-  final void Function(String) onSelectType;
+  final List<ProductTypesTableData> productTypesList;
+  final void Function(int) onSelectType;
   final void Function(Map<String, dynamic>) onEditType;
   final void Function() onAddType;
 
@@ -50,13 +51,13 @@ class ProductTypes extends StatelessWidget {
                       child: ElevatedButton(
                         style: ProyectStyles.buttonStyles(context),
                         onPressed: () {
-                          onSelectType(index["nombre"]);
+                          onSelectType(index.id);
                         },
                         onLongPress: () {
-                          onEditType(index);
+                          onEditType(index.toJson());
                         },
                         child: Text(
-                          index["nombre"].toString(),
+                          index.name,
                           style: Theme.of(context).textTheme.titleMedium,
                           textAlign: TextAlign.center,
                         ),

@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          databases:
+            # Required: A name for the database and its path
+            my_database: lib/dbModels/dbConnection.dart
+
+            # Optional: Add more databases

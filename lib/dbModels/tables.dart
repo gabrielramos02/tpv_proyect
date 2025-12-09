@@ -25,7 +25,7 @@ class ProductsClass extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   RealColumn get price => real()();
-  RealColumn get color => real()();
+  TextColumn get color => text()();
   IntColumn get order => integer()();
   IntColumn get type => integer().references(ProductTypesTable, #id)();
   IntColumn get taxes => integer().references(Taxes, #id)();
