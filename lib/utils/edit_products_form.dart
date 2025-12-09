@@ -1,0 +1,118 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/main.dart';
+
+class EditProductsForm extends StatefulWidget {
+  const EditProductsForm({super.key, required this.product});
+  final ProductsClassData product;
+
+  @override
+  State<EditProductsForm> createState() => _EditProductsFormState();
+}
+
+class _EditProductsFormState extends State<EditProductsForm> {
+  List<ProductTypesTableData> productTypes = [];
+  List<ProductTypesTableData> taxes = [];
+  Map<String, dynamic> response = {};
+  @override
+  @override
+  void initState() {
+    super.initState();
+    response = widget.product.toJson();
+    getTypes();
+  }
+
+  Future<void> getTypes() async {
+    final response = await database.select(database.productTypesTable).get();
+    setState(() {
+      productTypes = response;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      actionsAlignment: MainAxisAlignment.spaceBetween,
+      title: Text(widget.product.name),
+      content: Form(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              initialValue: widget.product.name,
+              decoration: InputDecoration(
+                labelText: "Nombre",
+                labelStyle: Theme.of(context).textTheme.bodyLarge,
+              ),
+              onChanged: (text) {
+                response["name"] = text;
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Ingresa un nombre';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              initialValue: widget.product.price.toString(),
+              decoration: InputDecoration(
+                labelText: "Precio",
+                labelStyle: Theme.of(context).textTheme.bodyLarge,
+              ),
+              onChanged: (text) {
+                response["price"] = text;
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Ingresa un precio';
+                }
+                return null;
+              },
+            ),
+            DropdownButtonFormField(
+              initialValue:widget.product.type,
+              hint: Text("Selecciona la familia"),
+              isExpanded: true,
+              items: productTypes.map((index) {
+                return DropdownMenuItem(
+                  value: index.id,
+                  child: Text(index.name),
+                );
+              }).toList(),
+              onChanged: (e) {
+                response["type"] = e;
+              },
+            ),
+            DropdownButtonFormField(
+              isExpanded: true,
+              hint: Text("Selecciona el tipo de taxes"),
+              items: taxes.map((index) {
+                return DropdownMenuItem(
+                  value: index.id,
+                  child: Text(index.name),
+                );
+              }).toList(),
+              onChanged: (e) {},
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop({"":""});
+          },
+          child: const Text('Remove'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(response);
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    );
+  }
+}

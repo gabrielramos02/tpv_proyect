@@ -3,7 +3,7 @@ import 'package:flutter_proyect/dbModels/dbConnection.dart';
 
 class Products extends StatelessWidget {
   final List<ProductsClassData> productsList;
-  final void Function(Map<String, dynamic>) onEditProduct;
+  final void Function(ProductsClassData) onEditProduct;
   final void Function() onAddProduct;
   const Products({
     super.key,
@@ -44,7 +44,7 @@ class Products extends StatelessWidget {
                         onPressed: () {
                         },
                         onLongPress: () {
-                          onEditProduct(index.toJson());
+                          onEditProduct(index);
                         },
                         child: Text(
                           index.name,

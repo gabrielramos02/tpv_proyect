@@ -1,54 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/main.dart';
 
-class EditForm extends StatefulWidget {
-  const EditForm({super.key, required this.productType});
-  final Map productType;
+class EditTypesForm extends StatefulWidget {
+  const EditTypesForm({super.key, required this.product});
+  final ProductTypesTableData product;
 
   @override
-  State<EditForm> createState() => _EditFormState();
+  State<EditTypesForm> createState() => _EditTypesFormState();
 }
 
-class _EditFormState extends State<EditForm> {
-  Map response = {};
+class _EditTypesFormState extends State<EditTypesForm> {
+  Map<String, dynamic> response = {};
+  @override
+  void initState() {
+    super.initState();
+    response = widget.product.toJson();
+  }
 
   @override
   Widget build(BuildContext context) {
-    response = widget.productType;
     return AlertDialog(
-    actionsAlignment: MainAxisAlignment.spaceBetween,
-      title: Text('${widget.productType["nombre"]}'),
+      actionsAlignment: MainAxisAlignment.spaceBetween,
+      title: Text(widget.product.name),
       content: Form(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            ...widget.productType.entries.map((index) {
-              return TextFormField(
-                decoration: InputDecoration(
-                  labelText: index.key.toUpperCase(),
-                  labelStyle: Theme.of(context).textTheme.bodyLarge,
-                ),
-                initialValue: index.value,
-                onChanged: (text) {
-                  response.update(index.key, (value) {
-                    return text;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingresa un nombre';
-                  }
-                  return null;
-                },
-              );
-            }),
+            TextFormField(
+              initialValue: widget.product.name,
+              decoration: InputDecoration(
+                labelText: "Nombre",
+                labelStyle: Theme.of(context).textTheme.bodyLarge,
+              ),
+              onChanged: (text) {
+                response["name"] = text;
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Ingresa un nombre';
+                }
+                return null;
+              },
+            ),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(Map());
+            Navigator.of(context).pop({"": ""});
           },
           child: const Text('Remove'),
         ),

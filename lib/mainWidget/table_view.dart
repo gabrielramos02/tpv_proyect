@@ -9,6 +9,7 @@ import 'package:flutter_proyect/mainWidget/table_view/product_types.dart';
 import 'package:flutter_proyect/mainWidget/table_view/products.dart';
 import 'package:flutter_proyect/utils/add_products_form.dart';
 import 'package:flutter_proyect/utils/add_types_form.dart';
+import 'package:flutter_proyect/utils/edit_products_form.dart';
 import 'package:flutter_proyect/utils/edit_types_form.dart';
 
 final List<Map<String, dynamic>> items = [
@@ -78,7 +79,6 @@ class _TableViewState extends State<TableView> {
     setState(() {
       _selectedType = type;
     });
-    print(type);
   }
 
   Map<String, dynamic> _editedProduct = {};
@@ -124,21 +124,26 @@ class _TableViewState extends State<TableView> {
     });
   }
 
-  void onEditProductType(Map<String, dynamic> productType) async {
-    final result = await showDialog(
+  void onEditProductType(ProductTypesTableData productType) async {
+    final Map<String, dynamic> result = await showDialog(
       context: context,
-      builder: (context) => EditForm(productType: productType),
+      builder: (context) => EditTypesForm(product: productType),
     );
-
-    if (result.isNotEmpty) {
-      print('Datos recibidos: ${result["nombre"]}');
+    if (result[""] != "") {
+      await database
+          .update(database.productTypesTable)
+          .replace(ProductTypesTableData.fromJson(result));
+      final updatedDB = await database.select(database.productTypesTable).get();
       setState(() {
-        productTypes.remove(productType);
-        productTypes.add(result);
+        productTypes = updatedDB;
       });
     } else {
+      await (database.delete(
+        database.productTypesTable,
+      )..where((e) => e.id.isValue(productType.id))).go();
+      final updatedDB = await database.select(database.productTypesTable).get();
       setState(() {
-        productTypes.remove(productType);
+        productTypes = updatedDB;
       });
     }
   }
@@ -156,20 +161,19 @@ class _TableViewState extends State<TableView> {
       setState(() {
         productTypes = updatedDB;
       });
-      print(productTypes.toList());
     }
   }
 
-  void onEditProduct(Map<String, dynamic> product) async {
-    final result = await showDialog(
+  void onEditProduct(ProductsClassData product) async {
+    final Map<String, dynamic> result = await showDialog(
       context: context,
-      builder: (context) => EditForm(productType: product),
+      builder: (context) => EditProductsForm(product: product),
     );
 
-    if (result.isNotEmpty) {
+    if (result[""] != "") {
       await database
           .update(database.productsClass)
-          .replace(ProductsClassData.fromJson(product));
+          .replace(ProductsClassData.fromJson(result));
       final updatedDB = await database.select(database.productsClass).get();
       setState(() {
         products = updatedDB;
@@ -177,7 +181,7 @@ class _TableViewState extends State<TableView> {
     } else {
       await (database.delete(
         database.productsClass,
-      )..where((e) => e.id.isValue(product["id"] as int))).go();
+      )..where((e) => e.id.isValue(product.id))).go();
       final updatedDB = await database.select(database.productsClass).get();
       setState(() {
         products = updatedDB;
@@ -231,15 +235,15 @@ class _TableViewState extends State<TableView> {
                           child: ProductTypes(
                             productTypesList: productTypes,
                             onSelectType: _selectType,
-                          //TODO: edit product
                             onEditType: onEditProductType,
                             onAddType: onAddProductType,
                           ),
                         ),
                         Flexible(
                           child: Products(
-                            productsList: products,
-                            //TODO edit product
+                            productsList: products.where(
+                              (e) => e.type == _selectedType,
+                            ).toList(),
                             onEditProduct: onEditProduct,
                             onAddProduct: onAddProduct,
                           ),

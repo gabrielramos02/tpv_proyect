@@ -12,7 +12,7 @@ class ProductTypes extends StatelessWidget {
   });
   final List<ProductTypesTableData> productTypesList;
   final void Function(int) onSelectType;
-  final void Function(Map<String, dynamic>) onEditType;
+  final void Function(ProductTypesTableData) onEditType;
   final void Function() onAddType;
 
   @override
@@ -54,7 +54,7 @@ class ProductTypes extends StatelessWidget {
                           onSelectType(index.id);
                         },
                         onLongPress: () {
-                          onEditType(index.toJson());
+                          onEditType(index);
                         },
                         child: Text(
                           index.name,
