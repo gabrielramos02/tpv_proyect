@@ -38,6 +38,7 @@ class _TableViewState extends State<TableView> {
   List<ProductTypesTableData> productTypes = [];
   List<ProductsClassData> products = [];
   int _selectedType = 99;
+  Map<String, dynamic> _editedProduct = {};
   @override
   void initState() {
     super.initState();
@@ -45,6 +46,7 @@ class _TableViewState extends State<TableView> {
     getProductTypes();
     getProducts();
   }
+  // ***GETTERS***
 
   Future<void> getLines() async {
     final response = await (database.select(database.orderLines).join([
@@ -75,52 +77,11 @@ class _TableViewState extends State<TableView> {
     });
   }
 
+  // ***************************************
+  // ***PRODUCT TYPE RELATED***
   void _selectType(int type) {
     setState(() {
       _selectedType = type;
-    });
-  }
-
-  Map<String, dynamic> _editedProduct = {};
-  void onEditProductList(Map<String, dynamic> product) {
-    setState(() {
-      _editedProduct = product;
-    });
-  }
-
-  Future<void> onSaveEdit(Map<String, dynamic> updatedProduct) async {
-    await database
-        .update(database.orderLines)
-        .replace(OrderLine.fromJson(updatedProduct));
-    final updatedDB = await database.select(database.orderLines).get();
-    setState(() {
-      orderLines = updatedDB;
-      _editedProduct = updatedProduct;
-    });
-  }
-
-  void onCancelEdit() {
-    setState(() {
-      _editedProduct = {};
-    });
-  }
-
-  void onRemoveProduct(Map<String, dynamic> removedProduct) {
-    setState(() {
-      items.remove(removedProduct);
-      _editedProduct = {};
-    });
-  }
-
-  void onAddProductUnit(Map<String, dynamic> addUnit) {
-    setState(() {
-      items[items.indexOf(addUnit)]["cantidad"]++;
-    });
-  }
-
-  void onRemoveProductUnit(Map<String, dynamic> addUnit) {
-    setState(() {
-      items[items.indexOf(addUnit)]["cantidad"]--;
     });
   }
 
@@ -163,7 +124,8 @@ class _TableViewState extends State<TableView> {
       });
     }
   }
-
+  // ***************************************************
+  // ***PRODUCT RELATED***
   void onEditProduct(ProductsClassData product) async {
     final Map<String, dynamic> result = await showDialog(
       context: context,
@@ -203,6 +165,51 @@ class _TableViewState extends State<TableView> {
       });
     }
   }
+  // ****************************************************
+
+// ***PRODUCT LIST RELATED***
+  void onEditProductList(Map<String, dynamic> product) {
+    setState(() {
+      _editedProduct = product;
+    });
+  }
+
+  Future<void> onSaveEditProductList(Map<String, dynamic> updatedProduct) async {
+    await database
+        .update(database.orderLines)
+        .replace(OrderLine.fromJson(updatedProduct));
+    final updatedDB = await database.select(database.orderLines).get();
+    setState(() {
+      orderLines = updatedDB;
+      _editedProduct = updatedProduct;
+    });
+  }
+
+  void onCancelEditProductList() {
+    setState(() {
+      _editedProduct = {};
+    });
+  }
+
+  void onRemoveProductFromList(Map<String, dynamic> removedProduct) {
+    setState(() {
+      items.remove(removedProduct);
+      _editedProduct = {};
+    });
+  }
+
+  void onAddProductUnitFromList(Map<String, dynamic> addUnit) {
+    setState(() {
+      items[items.indexOf(addUnit)]["cantidad"]++;
+    });
+  }
+
+  void onRemoveProductUnitFromList(Map<String, dynamic> addUnit) {
+    setState(() {
+      items[items.indexOf(addUnit)]["cantidad"]--;
+    });
+  }
+  // *******************************
 
   @override
   Widget build(BuildContext context) {
@@ -241,9 +248,9 @@ class _TableViewState extends State<TableView> {
                         ),
                         Flexible(
                           child: Products(
-                            productsList: products.where(
-                              (e) => e.type == _selectedType,
-                            ).toList(),
+                            productsList: products
+                                .where((e) => e.type == _selectedType)
+                                .toList(),
                             onEditProduct: onEditProduct,
                             onAddProduct: onAddProduct,
                           ),
@@ -253,11 +260,11 @@ class _TableViewState extends State<TableView> {
                   }
                   return EditProduct(
                     product: _editedProduct,
-                    onSaveProduct: onSaveEdit,
-                    onCancelEdit: onCancelEdit,
-                    onRemoveProduct: onRemoveProduct,
-                    onAddProductUnit: onAddProductUnit,
-                    onRemoveProductUnit: onRemoveProductUnit,
+                    onSaveProduct: onSaveEditProductList,
+                    onCancelEdit: onCancelEditProductList,
+                    onRemoveProduct: onRemoveProductFromList,
+                    onAddProductUnit: onAddProductUnitFromList,
+                    onRemoveProductUnit: onRemoveProductUnitFromList,
                   );
                 },
               ),
