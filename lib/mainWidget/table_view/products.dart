@@ -4,12 +4,14 @@ import 'package:flutter_proyect/dbModels/dbConnection.dart';
 class Products extends StatelessWidget {
   final List<ProductsClassData> productsList;
   final void Function(ProductsClassData) onEditProduct;
+  final void Function(ProductsClassData) onTapProduct;
   final void Function() onAddProduct;
   const Products({
     super.key,
     required this.productsList,
     required this.onEditProduct,
     required this.onAddProduct,
+    required this.onTapProduct,
   });
 
   @override
@@ -41,8 +43,7 @@ class Products extends StatelessWidget {
                             borderRadius: BorderRadius.circular(1),
                           ),
                         ),
-                        onPressed: () {
-                        },
+                        onPressed: () {onTapProduct(index);},
                         onLongPress: () {
                           onEditProduct(index);
                         },

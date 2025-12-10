@@ -14,10 +14,9 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
-
   static QueryExecutor _openConnection() {
     return driftDatabase(
-      name: 'proyect_db',
+      name: 'proyect_db3',
       native: const DriftNativeOptions(
         // By default, `driftDatabase` from `package:drift_flutter` stores the
         // database files in `getApplicationDocumentsDirectory()`.

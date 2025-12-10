@@ -76,7 +76,7 @@ class _ZoneViewState extends State<ZoneView> {
     });
   }
 
-  void onTablePressed(String mesa) {
+  void onTablePressed(RestTable mesa) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TableView(mesa: mesa)),
@@ -256,7 +256,7 @@ class _ZoneViewState extends State<ZoneView> {
                               hideSnackBar();
                               await onDeleteTable(index);
                             } else {
-                              onTablePressed(index.number);
+                              onTablePressed(index);
                             }
                           },
                           child: Text(

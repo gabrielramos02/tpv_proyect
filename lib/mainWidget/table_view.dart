@@ -27,7 +27,7 @@ final List<Map<String, dynamic>> products = [
 
 class TableView extends StatefulWidget {
   const TableView({super.key, required this.mesa});
-  final String mesa;
+  final RestTable mesa;
 
   @override
   State<TableView> createState() => _TableViewState();
@@ -52,9 +52,9 @@ class _TableViewState extends State<TableView> {
     final response = await (database.select(database.orderLines).join([
       drift.innerJoin(
         database.orders,
-        database.orders.id.equalsExp(database.orderLines.id),
+        database.orders.id.equalsExp(database.orderLines.order),
       ),
-    ])..where(database.orders.name.equals(widget.mesa))).get();
+    ])..where(database.orders.restTable.equals(widget.mesa.id))).get();
     final result = response
         .map((row) => row.readTable(database.orderLines))
         .toList();
@@ -124,6 +124,7 @@ class _TableViewState extends State<TableView> {
       });
     }
   }
+
   // ***************************************************
   // ***PRODUCT RELATED***
   void onEditProduct(ProductsClassData product) async {
@@ -165,16 +166,83 @@ class _TableViewState extends State<TableView> {
       });
     }
   }
+
+  void onTapProduct(ProductsClassData producto) async {
+    final List<Order> orderFromTable =
+        await (database.select(database.orders)..where((e) {
+              return e.restTable.isValue(widget.mesa.id) &
+                  e.closedAt.isNull();
+            }))
+            .get();
+    final bool isNewProduct = orderLines.every(
+      (e) => e.productName != producto.name,
+    );
+    if (orderFromTable.isEmpty && isNewProduct) {
+      final Order newOrder = await database
+          .into(database.orders)
+          .insertReturning(
+            OrdersCompanion.insert(
+              totalPrice: producto.price,
+              payedPrice: 0,
+              totalTaxes: producto.price,
+              totalPriceWithTaxes: producto.price,
+              state: 0,
+              restTable: widget.mesa.id,
+              createdAt: DateTime.now(),
+            ),
+          );
+      await database
+          .into(database.orderLines)
+          .insert(
+            OrderLinesCompanion.insert(
+              productName: producto.name,
+              currentPrice: producto.price,
+              totalPrice: producto.price,
+              taxRate: 0.2,
+              taxPrice: (producto.price * 0.20),
+              quantity: 1,
+              order: newOrder.id,
+            ),
+          );
+    } else if (isNewProduct) {
+      await database
+          .into(database.orderLines)
+          .insert(
+            OrderLinesCompanion.insert(
+              productName: producto.name,
+              currentPrice: producto.price,
+              totalPrice: producto.price,
+              taxRate: 0.2,
+              taxPrice: (producto.price * 0.20),
+              quantity: 1,
+              order: orderFromTable[0].id,
+            ),
+          );
+    } else {
+      await (database.update(database.orderLines)..where(
+            (e) =>
+                e.order.isValue(orderFromTable.first.id) &
+                e.productName.isValue(producto.name),
+          ))
+          .write(
+            OrderLinesCompanion.custom(quantity: database.orderLines.quantity + const drift.Constant(1)),
+          );
+    }
+
+    await getLines();
+  }
   // ****************************************************
 
-// ***PRODUCT LIST RELATED***
+  // ***PRODUCT LIST RELATED***
   void onEditProductList(Map<String, dynamic> product) {
     setState(() {
       _editedProduct = product;
     });
   }
 
-  Future<void> onSaveEditProductList(Map<String, dynamic> updatedProduct) async {
+  Future<void> onSaveEditProductList(
+    Map<String, dynamic> updatedProduct,
+  ) async {
     await database
         .update(database.orderLines)
         .replace(OrderLine.fromJson(updatedProduct));
@@ -225,7 +293,7 @@ class _TableViewState extends State<TableView> {
                     child: ProductList(
                       items: orderLines,
                       onSelectProduct: onEditProductList,
-                      mesa: widget.mesa,
+                      mesa: widget.mesa.number,
                     ),
                   ),
                   Flexible(child: Keyboard()),
@@ -253,11 +321,13 @@ class _TableViewState extends State<TableView> {
                                 .toList(),
                             onEditProduct: onEditProduct,
                             onAddProduct: onAddProduct,
+                            onTapProduct: onTapProduct,
                           ),
                         ),
                       ],
                     );
                   }
+                  //TODO: editar productos
                   return EditProduct(
                     product: _editedProduct,
                     onSaveProduct: onSaveEditProductList,

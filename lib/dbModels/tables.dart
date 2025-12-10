@@ -33,19 +33,17 @@ class ProductsClass extends Table {
 
 class Orders extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text()();
-  DateTimeColumn get createdAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get closedAt => dateTime().nullable()();
   RealColumn get totalPrice => real()();
   RealColumn get payedPrice => real()();
   RealColumn get totalTaxes => real()();
   RealColumn get totalPriceWithTaxes => real()();
   IntColumn get state => integer()();
-  IntColumn get taxes => integer().references(RestTables, #id)();
+  IntColumn get restTable => integer().references(RestTables, #id)();
 }
 class OrderLines extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text()();
   TextColumn get productName => text()();
   RealColumn get currentPrice => real()();
   RealColumn get totalPrice => real()();

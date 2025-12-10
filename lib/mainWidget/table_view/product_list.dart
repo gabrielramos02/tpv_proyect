@@ -166,7 +166,7 @@ class ProductList extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  '${(item.quantity) * (item.currentPrice as int)}€',
+                                  '${(item.quantity) * (item.currentPrice)}€',
                                   style: Theme.of(context).textTheme.labelLarge,
                                   textAlign: TextAlign.end,
                                 ),
