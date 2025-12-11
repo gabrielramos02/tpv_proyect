@@ -116,7 +116,7 @@ class _ZoneViewState extends State<ZoneView> {
                   child: ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {
-                      if (!showSnackBar) {
+                      if (!deleteTable) {
                         onShowSnackBar();
                         setState(() {
                           showSnackBar = true;
@@ -142,8 +142,9 @@ class _ZoneViewState extends State<ZoneView> {
                   child: ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () async {
+                      hideSnackBar();
                       setState(() {
-                        deleteTable = true;
+                        deleteTable = false;
                       });
                       await onAddTable();
                     },

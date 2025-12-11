@@ -9,7 +9,7 @@ class ProductList extends StatelessWidget {
     required this.mesa,
   });
   final List<OrderLine> items;
-  final void Function(Map<String,dynamic>) onSelectProduct;
+  final void Function(Map<String, dynamic>) onSelectProduct;
   final String mesa;
 
   int totalCantidad() {
@@ -19,7 +19,11 @@ class ProductList extends StatelessWidget {
   double totalPrecio() {
     return items.fold(
       0,
-      (sum, item) => sum + ((item.quantity) * item.currentPrice),
+      (sum, item) =>
+          sum +
+          (double.parse(
+            ((item.quantity) * (item.currentPrice)).toStringAsFixed(2),
+          )),
     );
   }
 
@@ -166,7 +170,7 @@ class ProductList extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  '${(item.quantity) * (item.currentPrice)}€',
+                                  '${double.parse(((item.quantity) * (item.currentPrice)).toStringAsFixed(2))}€',
                                   style: Theme.of(context).textTheme.labelLarge,
                                   textAlign: TextAlign.end,
                                 ),

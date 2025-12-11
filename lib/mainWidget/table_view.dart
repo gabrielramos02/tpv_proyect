@@ -12,19 +12,6 @@ import 'package:flutter_proyect/utils/add_types_form.dart';
 import 'package:flutter_proyect/utils/edit_products_form.dart';
 import 'package:flutter_proyect/utils/edit_types_form.dart';
 
-final List<Map<String, dynamic>> items = [
-  {'producto': 'Laptop', 'cantidad': 2, 'precio': 1200},
-  {'producto': 'Mouse', 'cantidad': 5, 'precio': 25},
-];
-final List<Map<String, dynamic>> productTypes = [
-  {'nombre': 'Cafes'},
-  {'nombre': 'Bebidas'},
-];
-final List<Map<String, dynamic>> products = [
-  {'nombre': 'Cortado', 'familia': 'Cafes'},
-  {'nombre': 'Refresco', 'familia': 'Bebidas'},
-];
-
 class TableView extends StatefulWidget {
   const TableView({super.key, required this.mesa});
   final RestTable mesa;
@@ -170,8 +157,7 @@ class _TableViewState extends State<TableView> {
   void onTapProduct(ProductsClassData producto) async {
     final List<Order> orderFromTable =
         await (database.select(database.orders)..where((e) {
-              return e.restTable.isValue(widget.mesa.id) &
-                  e.closedAt.isNull();
+              return e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull();
             }))
             .get();
     final bool isNewProduct = orderLines.every(
@@ -225,7 +211,9 @@ class _TableViewState extends State<TableView> {
                 e.productName.isValue(producto.name),
           ))
           .write(
-            OrderLinesCompanion.custom(quantity: database.orderLines.quantity + const drift.Constant(1)),
+            OrderLinesCompanion.custom(
+              quantity: database.orderLines.quantity + const drift.Constant(1),
+            ),
           );
     }
 
@@ -240,17 +228,11 @@ class _TableViewState extends State<TableView> {
     });
   }
 
-  Future<void> onSaveEditProductList(
-    Map<String, dynamic> updatedProduct,
-  ) async {
+  void onSaveEditProductList(Map<String, dynamic> updatedProduct) async {
     await database
         .update(database.orderLines)
         .replace(OrderLine.fromJson(updatedProduct));
-    final updatedDB = await database.select(database.orderLines).get();
-    setState(() {
-      orderLines = updatedDB;
-      _editedProduct = updatedProduct;
-    });
+    getLines();
   }
 
   void onCancelEditProductList() {
@@ -259,23 +241,48 @@ class _TableViewState extends State<TableView> {
     });
   }
 
-  void onRemoveProductFromList(Map<String, dynamic> removedProduct) {
+  void onRemoveProductFromList(Map<String, dynamic> removedProduct) async {
+    final orderLine = orderLines.elementAt(
+      orderLines.indexOf(OrderLine.fromJson(removedProduct)),
+    );
+    await (database.delete(
+      database.orderLines,
+    )..where((e) => e.id.isValue(orderLine.id))).go();
+    getLines();
     setState(() {
-      items.remove(removedProduct);
       _editedProduct = {};
     });
   }
 
-  void onAddProductUnitFromList(Map<String, dynamic> addUnit) {
-    setState(() {
-      items[items.indexOf(addUnit)]["cantidad"]++;
-    });
+  void onAddProductUnitFromList(Map<String, dynamic> addUnit) async {
+    await (database.update(
+      database.orderLines,
+    )..where((e) => e.id.isValue(addUnit["id"]))).write(
+      OrderLinesCompanion.custom(
+        quantity: database.orderLines.quantity + const drift.Constant(1),
+      ),
+    );
+    getLines();
   }
 
-  void onRemoveProductUnitFromList(Map<String, dynamic> addUnit) {
-    setState(() {
-      items[items.indexOf(addUnit)]["cantidad"]--;
-    });
+  void onRemoveProductUnitFromList(Map<String, dynamic> addUnit) async {
+    if (addUnit["quantity"] > 1) {
+      await (database.update(
+        database.orderLines,
+      )..where((e) => e.id.isValue(addUnit["id"]))).write(
+        OrderLinesCompanion.custom(
+          quantity: database.orderLines.quantity - const drift.Constant(1),
+        ),
+      );
+    } else {
+      await (database.delete(
+        database.orderLines,
+      )..where((e) => e.id.isValue(addUnit["id"]))).go();
+      setState(() {
+        _editedProduct = {};
+      });
+    }
+    getLines();
   }
   // *******************************
 
@@ -327,7 +334,6 @@ class _TableViewState extends State<TableView> {
                       ],
                     );
                   }
-                  //TODO: editar productos
                   return EditProduct(
                     product: _editedProduct,
                     onSaveProduct: onSaveEditProductList,

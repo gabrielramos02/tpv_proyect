@@ -57,6 +57,7 @@ class EditProduct extends StatelessWidget {
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {
                       onRemoveProductUnit(product);
+                      product["quantity"] --;
                     },
                     child: Text(
                       "-",
@@ -67,37 +68,11 @@ class EditProduct extends StatelessWidget {
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {
                       onAddProductUnit(product);
+                      product["quantity"] ++;
                     },
                     child: Text(
                       "+",
                       style: Theme.of(context).textTheme.headlineLarge,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                spacing: 4,
-                children: [
-                  ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {
-                      onCancelEdit();
-                    },
-                    child: Text(
-                      "Back",
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {
-                      onRemoveProduct(product);
-                    },
-                    child: Text(
-                      "Remove",
-                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
                 ],
