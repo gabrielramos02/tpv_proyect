@@ -1,13 +1,21 @@
+import 'package:drift/drift.dart' as dart;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/utils/calculate_from_expression.dart';
 import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
-import 'package:function_tree/function_tree.dart';
 
 TextEditingController inputController = TextEditingController(text: "");
 
 class Keyboard extends StatefulWidget {
-  const Keyboard({super.key});
+  const Keyboard({
+    super.key,
+    required this.onChangePriceText,
+    required this.onEnter,
+  });
+  final void Function(String) onChangePriceText;
+  final void Function(ProductsClassData) onEnter;
 
   @override
   State<Keyboard> createState() => _KeyboardState();
@@ -17,7 +25,7 @@ class _KeyboardState extends State<Keyboard> {
   void onCheckout() {
     final result = showDialog(
       context: context,
-      builder: (context) => Checkout(precio: "12.2",),
+      builder: (context) => Checkout(precio: "12.2"),
     );
   }
 
@@ -59,7 +67,7 @@ class _KeyboardState extends State<Keyboard> {
                               ),
                             ],
                             onChanged: (text) {
-                              print(text);
+                              widget.onChangePriceText(text);
                             },
                           ),
                         ),
@@ -96,7 +104,9 @@ class _KeyboardState extends State<Keyboard> {
                                   margin: EdgeInsets.all(4),
                                   child: ElevatedButton(
                                     style: ProyectStyles.buttonStyles(context),
-                                    onPressed: () {onCheckout();},
+                                    onPressed: () {
+                                      onCheckout();
+                                    },
                                     child: Text(
                                       "Cobrar",
                                       style: Theme.of(
@@ -258,6 +268,7 @@ class _KeyboardState extends State<Keyboard> {
                                       0,
                                       inputController.text.length - 1,
                                     );
+                                widget.onChangePriceText(inputController.text);
                               },
                               child: Text(
                                 "<-",
@@ -281,15 +292,22 @@ class _KeyboardState extends State<Keyboard> {
                             child: ElevatedButton(
                               style: ProyectStyles.buttonStyles(context),
                               onPressed: () {
-                                final expression = inputController.text;
-                                try {
-                                  final result = expression
-                                      .interpret()
-                                      .toDouble();
-                                  inputController.text = result.toString();
-                                } catch (e) {
-                                  inputController.text = double.nan.toString();
-                                }
+                                inputController.text = calculate(
+                                  inputController.text,
+                                );
+                                widget.onEnter(
+                                  ProductsClassData(
+                                    id: 99,
+                                    name: "Varios",
+                                    price: double.parse(inputController.text),
+                                    color: "",
+                                    order: 0,
+                                    type: 0,
+                                    taxes: 0,
+                                  ),
+                                );
+                                inputController.text = "";
+                                widget.onChangePriceText(inputController.text);
                               },
                               child: Text(
                                 "Enter",

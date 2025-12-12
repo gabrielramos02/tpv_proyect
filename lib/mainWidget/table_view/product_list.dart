@@ -206,7 +206,7 @@ class ProductList extends StatelessWidget {
                     color: Colors.white70,
                     padding: EdgeInsets.all(8.0),
                     child: Text(
-                      "Total: ${totalPrecio()}",
+                      "Total: ${totalPrecio().toStringAsFixed(2)}",
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                   ),

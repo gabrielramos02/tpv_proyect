@@ -25,6 +25,7 @@ class _TableViewState extends State<TableView> {
   List<ProductTypesTableData> productTypes = [];
   List<ProductsClassData> products = [];
   int _selectedType = 99;
+  String priceText = "";
   Map<String, dynamic> _editedProduct = {};
   @override
   void initState() {
@@ -160,9 +161,11 @@ class _TableViewState extends State<TableView> {
               return e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull();
             }))
             .get();
-    final bool isNewProduct = orderLines.every(
-      (e) => e.productName != producto.name,
-    );
+    final bool isNewProduct = orderLines.every((e) {
+      return (e.productName == producto.name &&
+              e.currentPrice != producto.price) ||
+          (e.productName != producto.name);
+    });
     if (orderFromTable.isEmpty && isNewProduct) {
       final Order newOrder = await database
           .into(database.orders)
@@ -205,10 +208,14 @@ class _TableViewState extends State<TableView> {
             ),
           );
     } else {
+      OrderLine oldProduct = orderLines.firstWhere(
+        (e) =>
+            e.productName == producto.name && e.currentPrice == producto.price,
+      );
       await (database.update(database.orderLines)..where(
             (e) =>
                 e.order.isValue(orderFromTable.first.id) &
-                e.productName.isValue(producto.name),
+                e.id.isValue(oldProduct.id),
           ))
           .write(
             OrderLinesCompanion.custom(
@@ -284,6 +291,15 @@ class _TableViewState extends State<TableView> {
     }
     getLines();
   }
+
+  // *******************************
+  // ***Keyboard Related***
+  void onChangePriceText(String priceLabel) {
+    setState(() {
+      priceText = priceLabel;
+    });
+  }
+
   // *******************************
 
   @override
@@ -303,7 +319,13 @@ class _TableViewState extends State<TableView> {
                       mesa: widget.mesa.number,
                     ),
                   ),
-                  Flexible(child: Keyboard()),
+                  //TODO: checkout,add product with custom price
+                  Flexible(
+                    child: Keyboard(
+                      onChangePriceText: onChangePriceText,
+                      onEnter: onTapProduct,
+                    ),
+                  ),
                 ],
               ),
             ),
