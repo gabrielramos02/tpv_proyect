@@ -21,6 +21,7 @@ class _AddProductsFormState extends State<AddProductsForm> {
   void initState() {
     super.initState();
     getTypes();
+    getTaxes();
   }
 
   Future<void> getTypes() async {
@@ -41,7 +42,7 @@ class _AddProductsFormState extends State<AddProductsForm> {
   Widget build(BuildContext context) {
     return AlertDialog(
       actionsAlignment: MainAxisAlignment.spaceBetween,
-      title: Text('Familia'),
+      title: Text('Producto'),
       content: Form(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -122,7 +123,7 @@ class _AddProductsFormState extends State<AddProductsForm> {
                   color: "",
                   order: 0,
                   type: type as int,
-                  taxes: 0,
+                  taxes: taxRate as int,
                 );
             Navigator.of(context).pop(response);
           },

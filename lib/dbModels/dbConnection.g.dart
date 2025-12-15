@@ -666,11 +666,11 @@ class $TaxesTable extends Taxes with TableInfo<$TaxesTable, Taxe> {
   );
   static const VerificationMeta _rateMeta = const VerificationMeta('rate');
   @override
-  late final GeneratedColumn<int> rate = GeneratedColumn<int>(
+  late final GeneratedColumn<double> rate = GeneratedColumn<double>(
     'rate',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
   @override
@@ -724,7 +724,7 @@ class $TaxesTable extends Taxes with TableInfo<$TaxesTable, Taxe> {
         data['${effectivePrefix}name'],
       )!,
       rate: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.double,
         data['${effectivePrefix}rate'],
       )!,
     );
@@ -739,14 +739,14 @@ class $TaxesTable extends Taxes with TableInfo<$TaxesTable, Taxe> {
 class Taxe extends DataClass implements Insertable<Taxe> {
   final int id;
   final String name;
-  final int rate;
+  final double rate;
   const Taxe({required this.id, required this.name, required this.rate});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
-    map['rate'] = Variable<int>(rate);
+    map['rate'] = Variable<double>(rate);
     return map;
   }
 
@@ -762,7 +762,7 @@ class Taxe extends DataClass implements Insertable<Taxe> {
     return Taxe(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      rate: serializer.fromJson<int>(json['rate']),
+      rate: serializer.fromJson<double>(json['rate']),
     );
   }
   @override
@@ -771,11 +771,11 @@ class Taxe extends DataClass implements Insertable<Taxe> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
-      'rate': serializer.toJson<int>(rate),
+      'rate': serializer.toJson<double>(rate),
     };
   }
 
-  Taxe copyWith({int? id, String? name, int? rate}) =>
+  Taxe copyWith({int? id, String? name, double? rate}) =>
       Taxe(id: id ?? this.id, name: name ?? this.name, rate: rate ?? this.rate);
   Taxe copyWithCompanion(TaxesCompanion data) {
     return Taxe(
@@ -809,7 +809,7 @@ class Taxe extends DataClass implements Insertable<Taxe> {
 class TaxesCompanion extends UpdateCompanion<Taxe> {
   final Value<int> id;
   final Value<String> name;
-  final Value<int> rate;
+  final Value<double> rate;
   const TaxesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -818,13 +818,13 @@ class TaxesCompanion extends UpdateCompanion<Taxe> {
   TaxesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    required int rate,
+    required double rate,
   }) : name = Value(name),
        rate = Value(rate);
   static Insertable<Taxe> custom({
     Expression<int>? id,
     Expression<String>? name,
-    Expression<int>? rate,
+    Expression<double>? rate,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -836,7 +836,7 @@ class TaxesCompanion extends UpdateCompanion<Taxe> {
   TaxesCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
-    Value<int>? rate,
+    Value<double>? rate,
   }) {
     return TaxesCompanion(
       id: id ?? this.id,
@@ -855,7 +855,7 @@ class TaxesCompanion extends UpdateCompanion<Taxe> {
       map['name'] = Variable<String>(name.value);
     }
     if (rate.present) {
-      map['rate'] = Variable<int>(rate.value);
+      map['rate'] = Variable<double>(rate.value);
     }
     return map;
   }
@@ -1339,7 +1339,8 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     aliasedName,
     false,
     type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
   );
   static const VerificationMeta _closedAtMeta = const VerificationMeta(
     'closedAt',
@@ -1451,8 +1452,6 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         _createdAtMeta,
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (data.containsKey('closed_at')) {
       context.handle(
@@ -1763,7 +1762,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   });
   OrdersCompanion.insert({
     this.id = const Value.absent(),
-    required DateTime createdAt,
+    this.createdAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     required double totalPrice,
     required double payedPrice,
@@ -1771,8 +1770,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     required double totalPriceWithTaxes,
     required int state,
     required int restTable,
-  }) : createdAt = Value(createdAt),
-       totalPrice = Value(totalPrice),
+  }) : totalPrice = Value(totalPrice),
        payedPrice = Value(payedPrice),
        totalTaxes = Value(totalTaxes),
        totalPriceWithTaxes = Value(totalPriceWithTaxes),
@@ -3383,13 +3381,13 @@ typedef $$TaxesTableCreateCompanionBuilder =
     TaxesCompanion Function({
       Value<int> id,
       required String name,
-      required int rate,
+      required double rate,
     });
 typedef $$TaxesTableUpdateCompanionBuilder =
     TaxesCompanion Function({
       Value<int> id,
       Value<String> name,
-      Value<int> rate,
+      Value<double> rate,
     });
 
 final class $$TaxesTableReferences
@@ -3433,7 +3431,7 @@ class $$TaxesTableFilterComposer extends Composer<_$AppDatabase, $TaxesTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get rate => $composableBuilder(
+  ColumnFilters<double> get rate => $composableBuilder(
     column: $table.rate,
     builder: (column) => ColumnFilters(column),
   );
@@ -3483,7 +3481,7 @@ class $$TaxesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get rate => $composableBuilder(
+  ColumnOrderings<double> get rate => $composableBuilder(
     column: $table.rate,
     builder: (column) => ColumnOrderings(column),
   );
@@ -3504,7 +3502,7 @@ class $$TaxesTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<int> get rate =>
+  GeneratedColumn<double> get rate =>
       $composableBuilder(column: $table.rate, builder: (column) => column);
 
   Expression<T> productsClassRefs<T extends Object>(
@@ -3563,13 +3561,13 @@ class $$TaxesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<int> rate = const Value.absent(),
+                Value<double> rate = const Value.absent(),
               }) => TaxesCompanion(id: id, name: name, rate: rate),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
-                required int rate,
+                required double rate,
               }) => TaxesCompanion.insert(id: id, name: name, rate: rate),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4073,7 +4071,7 @@ typedef $$ProductsClassTableProcessedTableManager =
 typedef $$OrdersTableCreateCompanionBuilder =
     OrdersCompanion Function({
       Value<int> id,
-      required DateTime createdAt,
+      Value<DateTime> createdAt,
       Value<DateTime?> closedAt,
       required double totalPrice,
       required double payedPrice,
@@ -4520,7 +4518,7 @@ class $$OrdersTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required DateTime createdAt,
+                Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 required double totalPrice,
                 required double payedPrice,

@@ -18,7 +18,7 @@ class ProductTypesTable extends Table {
 class Taxes extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
-  IntColumn get rate => integer()();
+  RealColumn get rate => real()();
 }
 
 class ProductsClass extends Table {
@@ -33,7 +33,7 @@ class ProductsClass extends Table {
 
 class Orders extends Table {
   IntColumn get id => integer().autoIncrement()();
-  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get closedAt => dateTime().nullable()();
   RealColumn get totalPrice => real()();
   RealColumn get payedPrice => real()();

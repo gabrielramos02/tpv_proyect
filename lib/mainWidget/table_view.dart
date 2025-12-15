@@ -156,76 +156,89 @@ class _TableViewState extends State<TableView> {
   }
 
   void onTapProduct(ProductsClassData producto) async {
+    double price = producto.price;
+    OrderLine returnedOrder;
+    if (priceText != "") {
+      price = double.parse(priceText);
+    }
     final List<Order> orderFromTable =
         await (database.select(database.orders)..where((e) {
               return e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull();
             }))
             .get();
     final bool isNewProduct = orderLines.every((e) {
-      return (e.productName == producto.name &&
-              e.currentPrice != producto.price) ||
+      return (e.productName == producto.name && e.currentPrice != price) ||
           (e.productName != producto.name);
     });
+    final Taxe taxRate = await (database.select(
+      database.taxes,
+    )..where((e) => e.id.isValue(producto.taxes))).getSingle();
     if (orderFromTable.isEmpty && isNewProduct) {
       final Order newOrder = await database
           .into(database.orders)
           .insertReturning(
             OrdersCompanion.insert(
-              totalPrice: producto.price,
+              totalPrice: price,
               payedPrice: 0,
-              totalTaxes: producto.price,
-              totalPriceWithTaxes: producto.price,
+              totalTaxes: taxRate.rate * price,
+              //TODO: Rename totalPriceWithTaxes to totalPriceWithoutTaxes
+              totalPriceWithTaxes: (1 - taxRate.rate) * price,
               state: 0,
               restTable: widget.mesa.id,
-              createdAt: DateTime.now(),
             ),
           );
-      await database
+      returnedOrder = await database
           .into(database.orderLines)
-          .insert(
+          .insertReturning(
             OrderLinesCompanion.insert(
               productName: producto.name,
-              currentPrice: producto.price,
-              totalPrice: producto.price,
-              taxRate: 0.2,
-              taxPrice: (producto.price * 0.20),
+              currentPrice: price,
+              //TODO Rename totalPrice to priceWithoutTax
+              totalPrice: (1 - taxRate.rate) * price,
+              taxRate: taxRate.rate,
+              taxPrice: taxRate.rate * price,
               quantity: 1,
               order: newOrder.id,
             ),
           );
     } else if (isNewProduct) {
-      await database
+      returnedOrder = await database
           .into(database.orderLines)
-          .insert(
+          .insertReturning(
             OrderLinesCompanion.insert(
               productName: producto.name,
-              currentPrice: producto.price,
-              totalPrice: producto.price,
+              currentPrice: price,
+              totalPrice: price,
               taxRate: 0.2,
-              taxPrice: (producto.price * 0.20),
+              taxPrice: (price * 0.20),
               quantity: 1,
-              order: orderFromTable[0].id,
+              order: orderFromTable.last.id,
             ),
           );
     } else {
       OrderLine oldProduct = orderLines.firstWhere(
-        (e) =>
-            e.productName == producto.name && e.currentPrice == producto.price,
+        (e) => e.productName == producto.name && e.currentPrice == price,
       );
-      await (database.update(database.orderLines)..where(
-            (e) =>
-                e.order.isValue(orderFromTable.first.id) &
-                e.id.isValue(oldProduct.id),
-          ))
-          .write(
-            OrderLinesCompanion.custom(
-              quantity: database.orderLines.quantity + const drift.Constant(1),
-            ),
-          );
+      List updatedOrders =
+          await (database.update(database.orderLines)..where(
+                (e) =>
+                    e.order.isValue(orderFromTable.first.id) &
+                    e.id.isValue(oldProduct.id),
+              ))
+              .writeReturning(
+                OrderLinesCompanion.custom(
+                  quantity:
+                      database.orderLines.quantity + const drift.Constant(1),
+                ),
+              );
+      returnedOrder = updatedOrders.first;
     }
+
+    await updateOrders(returnedOrder.order);
 
     await getLines();
   }
+
   // ****************************************************
 
   // ***PRODUCT LIST RELATED***
@@ -256,19 +269,21 @@ class _TableViewState extends State<TableView> {
       database.orderLines,
     )..where((e) => e.id.isValue(orderLine.id))).go();
     getLines();
+    updateOrders(orderLine.order);
     setState(() {
       _editedProduct = {};
     });
   }
 
   void onAddProductUnitFromList(Map<String, dynamic> addUnit) async {
-    await (database.update(
+    List<OrderLine> ordersAffected = await (database.update(
       database.orderLines,
-    )..where((e) => e.id.isValue(addUnit["id"]))).write(
+    )..where((e) => e.id.isValue(addUnit["id"]))).writeReturning(
       OrderLinesCompanion.custom(
         quantity: database.orderLines.quantity + const drift.Constant(1),
       ),
     );
+    updateOrders(ordersAffected[0].order);
     getLines();
   }
 
@@ -289,9 +304,38 @@ class _TableViewState extends State<TableView> {
         _editedProduct = {};
       });
     }
+    updateOrders(addUnit["order"]);
     getLines();
   }
 
+  Future<void> updateOrders(int id) async {
+    final List<Order> ordersFromTable =
+        await (database.select(database.orders)..where((e) {
+              return e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull();
+            }))
+            .get();
+    double totalPrice = ordersFromTable.fold(
+      0,
+      (prev, e) => prev + e.totalPrice,
+    );
+    double totalTaxes = ordersFromTable.fold(
+      0,
+      (prev, e) => prev + e.totalTaxes,
+    );
+    double totalPriceWithoutTaxes = ordersFromTable.fold(
+      0,
+      (prev, e) => prev + e.totalPriceWithTaxes,
+    );
+    await (database.update(
+      database.orders,
+    )..where((e) => e.id.isValue(id))).write(
+      OrdersCompanion(
+        totalPrice: drift.Value(totalPrice),
+        totalTaxes: drift.Value(totalTaxes),
+        totalPriceWithTaxes: drift.Value(totalPriceWithoutTaxes),
+      ),
+    );
+  }
   // *******************************
   // ***Keyboard Related***
   void onChangePriceText(String priceLabel) {
@@ -319,7 +363,7 @@ class _TableViewState extends State<TableView> {
                       mesa: widget.mesa.number,
                     ),
                   ),
-                  //TODO: checkout,add product with custom price
+                  //TODO: checkout
                   Flexible(
                     child: Keyboard(
                       onChangePriceText: onChangePriceText,

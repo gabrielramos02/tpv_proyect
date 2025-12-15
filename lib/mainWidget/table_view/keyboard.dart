@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' as dart;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
@@ -28,6 +27,16 @@ class _KeyboardState extends State<Keyboard> {
       builder: (context) => Checkout(precio: "12.2"),
     );
   }
+  
+  @override
+    void initState() {
+      super.initState();
+      inputController.text = "";
+      inputController.addListener(onTextChanged);
+    }
+    void onTextChanged(){
+            widget.onChangePriceText(inputController.text);
+        }
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +75,6 @@ class _KeyboardState extends State<Keyboard> {
                                 RegExp(r'^[0-9+*/.-]*$'),
                               ),
                             ],
-                            onChanged: (text) {
-                              widget.onChangePriceText(text);
-                            },
                           ),
                         ),
                       ),
@@ -337,7 +343,6 @@ Widget _buildButtonKeyboard(BuildContext context, String label) {
       style: ProyectStyles.buttonStyles(context),
       onPressed: () {
         inputController.text += label;
-        print(inputController.text);
       },
       child: Text(label, style: Theme.of(context).textTheme.titleLarge),
     ),
