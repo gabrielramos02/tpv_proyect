@@ -12,7 +12,7 @@ class EditProduct extends StatelessWidget {
     required this.onRemoveProductUnit,
   });
   final Map<String, dynamic> product;
-  final void Function(Map<String, dynamic>) onSaveProduct;
+  final void Function() onSaveProduct;
   final void Function(Map<String, dynamic>) onRemoveProduct;
   final void Function(Map<String, dynamic>) onAddProductUnit;
   final void Function(Map<String, dynamic>) onRemoveProductUnit;
@@ -39,7 +39,7 @@ class EditProduct extends StatelessWidget {
                   ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {
-                      onCancelEdit();
+                      onSaveProduct();
                     },
                     child: Text(
                       "Precio Libre",

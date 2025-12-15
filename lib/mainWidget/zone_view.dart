@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
+import 'package:flutter_proyect/utils/new_table_form.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 class ZoneView extends StatefulWidget {
@@ -38,31 +39,32 @@ class _ZoneViewState extends State<ZoneView> {
   }
 
   Future<void> onAddTable() async {
-    int totalTables = tableList.length;
+    final String response = await showDialog(
+      context: context,
+      builder: (context) => NewTableForm(),
+    );
+    if(response!= ""){
     await database
         .into(database.restTables)
         .insert(
           RestTablesCompanion.insert(
-            number: "${totalTables + 1}",
+            number: response,
             top: 10,
             left: 20,
             state: 0,
           ),
         );
-    final result = await database.select(database.restTables).get();
-    setState(() {
-      tableList = result;
-    });
+    }
+    getTables();
   }
 
   Future<void> onDeleteTable(RestTable table) async {
     (database.delete(
       database.restTables,
     )..where((e) => e.id.isValue(table.id))).go();
-    final result = await database.select(database.restTables).get();
+    getTables();
     setState(() {
       deleteTable = !deleteTable;
-      tableList = result;
     });
   }
 

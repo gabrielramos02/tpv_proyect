@@ -11,6 +11,8 @@ import 'package:flutter_proyect/utils/add_products_form.dart';
 import 'package:flutter_proyect/utils/add_types_form.dart';
 import 'package:flutter_proyect/utils/edit_products_form.dart';
 import 'package:flutter_proyect/utils/edit_types_form.dart';
+import 'package:flutter_proyect/utils/free_price_form.dart';
+//TODO: Checkout, borrar Mesa
 
 class TableView extends StatefulWidget {
   const TableView({super.key, required this.mesa});
@@ -193,8 +195,7 @@ class _TableViewState extends State<TableView> {
             OrderLinesCompanion.insert(
               productName: producto.name,
               currentPrice: price,
-              //TODO Rename totalPrice to priceWithoutTax
-              totalPrice: (1 - taxRate.rate) * price,
+              totalPrice: price,
               taxRate: taxRate.rate,
               taxPrice: taxRate.rate * price,
               quantity: 1,
@@ -229,6 +230,9 @@ class _TableViewState extends State<TableView> {
                 OrderLinesCompanion.custom(
                   quantity:
                       database.orderLines.quantity + const drift.Constant(1),
+                  totalPrice:
+                      (database.orderLines.totalPrice +
+                      database.orderLines.currentPrice),
                 ),
               );
       returnedOrder = updatedOrders.first;
@@ -248,10 +252,23 @@ class _TableViewState extends State<TableView> {
     });
   }
 
-  void onSaveEditProductList(Map<String, dynamic> updatedProduct) async {
-    await database
-        .update(database.orderLines)
-        .replace(OrderLine.fromJson(updatedProduct));
+  void onSaveEditProductList() async {
+    final oldProduct = OrderLine.fromJson(_editedProduct);
+    final Map<String, dynamic> result = await showDialog(
+      context: context,
+      builder: (context) => FreePriceForm(),
+    );
+
+    if (result["price"] != "0") {
+      final newProduct = oldProduct.copyWith(
+        currentPrice: double.parse(result["price"]),
+        taxRate: oldProduct.taxRate,
+        taxPrice: (oldProduct.taxRate * double.parse(result["price"])),
+        totalPrice: double.parse(result["price"]) * oldProduct.quantity,
+      );
+      await database.update(database.orderLines).replace(newProduct);
+    }
+    updateOrders(oldProduct.order);
     getLines();
   }
 
@@ -276,13 +293,14 @@ class _TableViewState extends State<TableView> {
   }
 
   void onAddProductUnitFromList(Map<String, dynamic> addUnit) async {
-    List<OrderLine> ordersAffected = await (database.update(
-      database.orderLines,
-    )..where((e) => e.id.isValue(addUnit["id"]))).writeReturning(
-      OrderLinesCompanion.custom(
-        quantity: database.orderLines.quantity + const drift.Constant(1),
-      ),
-    );
+    List<OrderLine> ordersAffected =
+        await (database.update(
+          database.orderLines,
+        )..where((e) => e.id.isValue(addUnit["id"]))).writeReturning(
+          OrderLinesCompanion.custom(
+            quantity: database.orderLines.quantity + const drift.Constant(1),
+          ),
+        );
     updateOrders(ordersAffected[0].order);
     getLines();
   }
@@ -336,6 +354,7 @@ class _TableViewState extends State<TableView> {
       ),
     );
   }
+
   // *******************************
   // ***Keyboard Related***
   void onChangePriceText(String priceLabel) {
@@ -363,7 +382,6 @@ class _TableViewState extends State<TableView> {
                       mesa: widget.mesa.number,
                     ),
                   ),
-                  //TODO: checkout
                   Flexible(
                     child: Keyboard(
                       onChangePriceText: onChangePriceText,

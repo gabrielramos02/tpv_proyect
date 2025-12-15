@@ -309,7 +309,7 @@ class _KeyboardState extends State<Keyboard> {
                                     color: "",
                                     order: 0,
                                     type: 0,
-                                    taxes: 0,
+                                    taxes: 1,
                                   ),
                                 );
                                 inputController.text = "";

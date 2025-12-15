@@ -12,7 +12,7 @@ class EditProductsForm extends StatefulWidget {
 
 class _EditProductsFormState extends State<EditProductsForm> {
   List<ProductTypesTableData> productTypes = [];
-  List<ProductTypesTableData> taxes = [];
+  List<Taxe> taxes = [];
   Map<String, dynamic> response = {};
   @override
   @override
@@ -20,12 +20,19 @@ class _EditProductsFormState extends State<EditProductsForm> {
     super.initState();
     response = widget.product.toJson();
     getTypes();
+    getTaxes();
   }
 
   Future<void> getTypes() async {
     final response = await database.select(database.productTypesTable).get();
     setState(() {
       productTypes = response;
+    });
+  }
+  Future<void> getTaxes() async {
+    final response = await database.select(database.taxes).get();
+    setState(() {
+      taxes = response;
     });
   }
 
