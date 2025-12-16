@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/utils/calculate_from_expression.dart';
-import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 TextEditingController inputController = TextEditingController(text: "");
@@ -12,31 +11,27 @@ class Keyboard extends StatefulWidget {
     super.key,
     required this.onChangePriceText,
     required this.onEnter,
+    required this.onCheckout,
   });
   final void Function(String) onChangePriceText;
   final void Function(ProductsClassData) onEnter;
+  final void Function() onCheckout;
 
   @override
   State<Keyboard> createState() => _KeyboardState();
 }
 
 class _KeyboardState extends State<Keyboard> {
-  void onCheckout() {
-    final result = showDialog(
-      context: context,
-      builder: (context) => Checkout(precio: "12.2"),
-    );
-  }
-  
   @override
-    void initState() {
-      super.initState();
-      inputController.text = "";
-      inputController.addListener(onTextChanged);
-    }
-    void onTextChanged(){
-            widget.onChangePriceText(inputController.text);
-        }
+  void initState() {
+    super.initState();
+    inputController.text = "";
+    inputController.addListener(onTextChanged);
+  }
+
+  void onTextChanged() {
+    widget.onChangePriceText(inputController.text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +106,7 @@ class _KeyboardState extends State<Keyboard> {
                                   child: ElevatedButton(
                                     style: ProyectStyles.buttonStyles(context),
                                     onPressed: () {
-                                      onCheckout();
+                                      widget.onCheckout();
                                     },
                                     child: Text(
                                       "Cobrar",

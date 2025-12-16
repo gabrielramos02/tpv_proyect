@@ -39,7 +39,7 @@ class Orders extends Table {
   RealColumn get payedPrice => real()();
   RealColumn get totalTaxes => real()();
   RealColumn get totalPriceWithTaxes => real()();
-  IntColumn get state => integer()();
+  IntColumn get state => integer()();//TODO: borrar column
   IntColumn get restTable => integer().references(RestTables, #id)();
 }
 class OrderLines extends Table {

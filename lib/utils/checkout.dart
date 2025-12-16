@@ -1,42 +1,114 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/utils/db_updates.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 import 'package:function_tree/function_tree.dart';
+
+import '../main.dart';
 
 TextEditingController inputControllerEfectivo = TextEditingController(text: "");
 TextEditingController inputControllerVisa = TextEditingController(text: "");
 TextEditingController inputControllerOtros = TextEditingController(text: "");
-List movementList = [];
 
 class Checkout extends StatefulWidget {
-  const Checkout({super.key, required this.precio});
-  final String precio;
+  const Checkout({super.key, required this.mesa});
+  final RestTable mesa;
 
   @override
   State<Checkout> createState() => _CheckoutState();
 }
 
 class _CheckoutState extends State<Checkout> {
-  Map<String, dynamic> response = {};
   TextEditingController selected = inputControllerEfectivo;
-  void onSelected(TextEditingController selection) {
+  String selectedName = "Efectivo";
+  List<Payment> paymentList = [];
+  List<Order> orderList = [];
+  double totalPrice = 0;
+  double pagado = 0;
+
+  void onSelected(TextEditingController selection, String name) {
     setState(() {
-        selection.text = selected.text;
-        selected.text = "";
+      selection.text = selected.text;
+      selected.text = "";
       selected = selection;
+      selectedName = name;
+    });
+  }
+
+  Future<void> getOrders() async {
+    final List<Order> ordersFromTable =
+        await (database.select(database.orders)..where(
+              (e) => e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull(),
+            ))
+            .get();
+
+    final List<Payment> paymentsFromOrder = await (database.select(
+      database.payments,
+    )..where((e) => e.order.isIn(ordersFromTable.map((e) => e.id)))).get();
+
+    double price = ordersFromTable.fold(0, (prev, e) => prev + e.totalPrice);
+
+    setState(() {
+      orderList = ordersFromTable;
+      totalPrice = price;
+      paymentList = paymentsFromOrder;
+    });
+    print(orderList);
+    inputControllerEfectivo.text = totalPrice.toString();
+  }
+
+  void onEnter() async {
+    if (double.parse(selected.text) > totalPrice) {
+      await database
+          .into(database.payments)
+          .insert(
+            PaymentsCompanion.insert(
+              paymentMethod: selectedName,
+              payedAmount: double.parse(selected.text),
+              order: orderList.first.id,
+            ),
+          );
+      await database
+          .into(database.payments)
+          .insert(
+            PaymentsCompanion.insert(
+              paymentMethod: "Devolucion",
+              payedAmount: totalPrice - double.parse(selected.text),
+              order: orderList.first.id,
+            ),
+          );
+    } else {
+      await database
+          .into(database.payments)
+          .insert(
+            PaymentsCompanion.insert(
+              paymentMethod: "Devolucion",
+              payedAmount: totalPrice - double.parse(selected.text),
+              order: orderList.first.id,
+            ),
+          );
+    }
+    getOrders();
+    DbUpdates.updatedOrders(widget.mesa.id);
+    setState(() {
+      pagado = double.parse(selected.text);
+      selected.text = "";
     });
   }
 
   @override
   void initState() {
     super.initState();
-    inputControllerEfectivo.text = widget.precio;
+    getOrders();
   }
+
   @override
-    void dispose() {
-      super.dispose();
-      selected.text = "";
-    }
+  void dispose() {
+    super.dispose();
+    selected.text = "";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +147,7 @@ class _CheckoutState extends State<Checkout> {
                                 child: Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
-                                    'Producto',
+                                    'Tipo',
                                     style: Theme.of(
                                       context,
                                     ).primaryTextTheme.labelLarge,
@@ -97,7 +169,7 @@ class _CheckoutState extends State<Checkout> {
                                 child: Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
-                                    'Precio',
+                                    'Hora de Pago',
                                     style: Theme.of(
                                       context,
                                     ).primaryTextTheme.labelLarge,
@@ -107,8 +179,7 @@ class _CheckoutState extends State<Checkout> {
                             ],
                           ),
                           // Primera fila de datos
-                          // Filas de datos (generadas dinámicamente)
-                          ...movementList.map((item) {
+                          ...paymentList.map((item) {
                             return TableRow(
                               children: <Widget>[
                                 TableCell(
@@ -116,7 +187,7 @@ class _CheckoutState extends State<Checkout> {
                                     child: Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        item['producto'].toString(),
+                                        item.paymentMethod,
                                         style: Theme.of(
                                           context,
                                         ).textTheme.labelLarge,
@@ -130,7 +201,7 @@ class _CheckoutState extends State<Checkout> {
                                     child: Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        item['cantidad'].toString(),
+                                        "${item.payedAmount.toString()} €",
                                         style: Theme.of(
                                           context,
                                         ).textTheme.labelLarge,
@@ -139,13 +210,12 @@ class _CheckoutState extends State<Checkout> {
                                     onTap: () {},
                                   ),
                                 ),
-                                // Se calcula el precio total por item (Cantidad * Precio Unitario)
                                 TableCell(
                                   child: InkWell(
                                     child: Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        '\$${(item['cantidad'] as int) * (item['precio'] as int)}',
+                                        item.paymentDateTime.toString(),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.labelLarge,
@@ -189,7 +259,8 @@ class _CheckoutState extends State<Checkout> {
                             onChanged: (text) {
                               print(text);
                             },
-                            onTap: () => onSelected(inputControllerEfectivo),
+                            onTap: () =>
+                                onSelected(inputControllerEfectivo, "Efectivo"),
                           ),
                         ),
                       ),
@@ -224,7 +295,7 @@ class _CheckoutState extends State<Checkout> {
                               print(text);
                             },
                             onTap: () {
-                              onSelected(inputControllerVisa);
+                              onSelected(inputControllerVisa, "Visa");
                             },
                           ),
                         ),
@@ -260,7 +331,7 @@ class _CheckoutState extends State<Checkout> {
                               print(text);
                             },
                             onTap: () {
-                              onSelected(inputControllerOtros);
+                              onSelected(inputControllerOtros, "Otros");
                             },
                           ),
                         ),
@@ -294,7 +365,7 @@ class _CheckoutState extends State<Checkout> {
                             child: SizedBox(
                               width: 150,
                               child: Text(
-                                "10.00",
+                                totalPrice.toString(),
                                 style: TextStyle(fontSize: 22),
                                 textAlign: TextAlign.end,
                               ),
@@ -319,7 +390,7 @@ class _CheckoutState extends State<Checkout> {
                             child: SizedBox(
                               width: 150,
                               child: Text(
-                                "10.00",
+                                pagado.toString(),
                                 style: TextStyle(fontSize: 22),
                                 textAlign: TextAlign.end,
                               ),
@@ -344,7 +415,9 @@ class _CheckoutState extends State<Checkout> {
                             child: SizedBox(
                               width: 150,
                               child: Text(
-                                "10.00",
+                                totalPrice > pagado
+                                    ? (totalPrice - pagado).toString()
+                                    : "0",
                                 style: TextStyle(fontSize: 22),
                                 textAlign: TextAlign.end,
                               ),
@@ -369,7 +442,9 @@ class _CheckoutState extends State<Checkout> {
                             child: SizedBox(
                               width: 150,
                               child: Text(
-                                "10.00",
+                                pagado > totalPrice
+                                    ? (pagado - totalPrice).toString()
+                                    : "0",
                                 style: TextStyle(fontSize: 22),
                                 textAlign: TextAlign.end,
                               ),
@@ -575,17 +650,17 @@ class _CheckoutState extends State<Checkout> {
                                               context,
                                             ),
                                             onPressed: () {
-                                              final expression =
-                                                  selected.text;
+                                              final expression = selected.text;
                                               try {
                                                 final result = expression
                                                     .interpret()
                                                     .toDouble();
-                                                selected.text =
-                                                    result.toString();
+                                                selected.text = result
+                                                    .toString();
+                                                onEnter();
                                               } catch (e) {
-                                                selected.text =
-                                                    double.nan.toString();
+                                                selected.text = double.nan
+                                                    .toString();
                                               }
                                             },
                                             child: Text(
@@ -617,13 +692,7 @@ class _CheckoutState extends State<Checkout> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(response);
+            Navigator.of(context).pop(orderList);
           },
           child: const Text('OK'),
         ),

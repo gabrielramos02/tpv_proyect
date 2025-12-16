@@ -9,6 +9,8 @@ import 'package:flutter_proyect/mainWidget/table_view/product_types.dart';
 import 'package:flutter_proyect/mainWidget/table_view/products.dart';
 import 'package:flutter_proyect/utils/add_products_form.dart';
 import 'package:flutter_proyect/utils/add_types_form.dart';
+import 'package:flutter_proyect/utils/checkout.dart';
+import 'package:flutter_proyect/utils/db_updates.dart';
 import 'package:flutter_proyect/utils/edit_products_form.dart';
 import 'package:flutter_proyect/utils/edit_types_form.dart';
 import 'package:flutter_proyect/utils/free_price_form.dart';
@@ -39,15 +41,21 @@ class _TableViewState extends State<TableView> {
   // ***GETTERS***
 
   Future<void> getLines() async {
-    final response = await (database.select(database.orderLines).join([
-      drift.innerJoin(
-        database.orders,
-        database.orders.id.equalsExp(database.orderLines.order),
-      ),
-    ])..where(database.orders.restTable.equals(widget.mesa.id))).get();
+    final response =
+        await (database.select(database.orderLines).join([
+              drift.innerJoin(
+                database.orders,
+                database.orders.id.equalsExp(database.orderLines.order),
+              ),
+            ])..where(
+              database.orders.restTable.equals(widget.mesa.id) &
+                  database.orders.closedAt.isNull(),
+            ))
+            .get();
     final result = response
         .map((row) => row.readTable(database.orderLines))
         .toList();
+    print(orderLines);
     setState(() {
       orderLines = result;
     });
@@ -216,29 +224,22 @@ class _TableViewState extends State<TableView> {
               order: orderFromTable.last.id,
             ),
           );
+      print(returnedOrder);
     } else {
       OrderLine oldProduct = orderLines.firstWhere(
         (e) => e.productName == producto.name && e.currentPrice == price,
       );
-      List updatedOrders =
-          await (database.update(database.orderLines)..where(
-                (e) =>
-                    e.order.isValue(orderFromTable.first.id) &
-                    e.id.isValue(oldProduct.id),
-              ))
-              .writeReturning(
-                OrderLinesCompanion.custom(
-                  quantity:
-                      database.orderLines.quantity + const drift.Constant(1),
-                  totalPrice:
-                      (database.orderLines.totalPrice +
-                      database.orderLines.currentPrice),
-                ),
-              );
-      returnedOrder = updatedOrders.first;
+      OrderLine newProduct = oldProduct.copyWith(
+        quantity: oldProduct.quantity + 1,
+        totalPrice: oldProduct.currentPrice + oldProduct.totalPrice,
+        taxPrice:
+            (oldProduct.totalPrice + oldProduct.currentPrice) *
+            oldProduct.taxRate,
+      );
+      await database.update(database.orderLines).replace(newProduct);
     }
 
-    await updateOrders(returnedOrder.order);
+    await DbUpdates.updatedOrders(widget.mesa.id);
 
     await getLines();
   }
@@ -268,7 +269,7 @@ class _TableViewState extends State<TableView> {
       );
       await database.update(database.orderLines).replace(newProduct);
     }
-    updateOrders(oldProduct.order);
+    await DbUpdates.updatedOrders(oldProduct.order);
     getLines();
   }
 
@@ -286,22 +287,26 @@ class _TableViewState extends State<TableView> {
       database.orderLines,
     )..where((e) => e.id.isValue(orderLine.id))).go();
     getLines();
-    updateOrders(orderLine.order);
+    await DbUpdates.updatedOrders(widget.mesa.id);
     setState(() {
       _editedProduct = {};
     });
   }
 
   void onAddProductUnitFromList(Map<String, dynamic> addUnit) async {
-    List<OrderLine> ordersAffected =
-        await (database.update(
-          database.orderLines,
-        )..where((e) => e.id.isValue(addUnit["id"]))).writeReturning(
-          OrderLinesCompanion.custom(
-            quantity: database.orderLines.quantity + const drift.Constant(1),
-          ),
-        );
-    updateOrders(ordersAffected[0].order);
+    await (database.update(
+      database.orderLines,
+    )..where((e) => e.id.isValue(addUnit["id"]))).write(
+      OrderLinesCompanion.custom(
+        quantity: database.orderLines.quantity + const drift.Constant(1),
+        totalPrice:
+            database.orderLines.totalPrice + database.orderLines.currentPrice,
+        taxPrice:
+            database.orderLines.taxPrice +
+            (database.orderLines.taxRate * database.orderLines.currentPrice),
+      ),
+    );
+    await DbUpdates.updatedOrders(widget.mesa.id);
     getLines();
   }
 
@@ -312,6 +317,11 @@ class _TableViewState extends State<TableView> {
       )..where((e) => e.id.isValue(addUnit["id"]))).write(
         OrderLinesCompanion.custom(
           quantity: database.orderLines.quantity - const drift.Constant(1),
+          totalPrice:
+              database.orderLines.totalPrice - database.orderLines.currentPrice,
+          taxPrice:
+              database.orderLines.taxPrice -
+              (database.orderLines.taxRate * database.orderLines.currentPrice),
         ),
       );
     } else {
@@ -322,37 +332,9 @@ class _TableViewState extends State<TableView> {
         _editedProduct = {};
       });
     }
-    updateOrders(addUnit["order"]);
-    getLines();
-  }
 
-  Future<void> updateOrders(int id) async {
-    final List<Order> ordersFromTable =
-        await (database.select(database.orders)..where((e) {
-              return e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull();
-            }))
-            .get();
-    double totalPrice = ordersFromTable.fold(
-      0,
-      (prev, e) => prev + e.totalPrice,
-    );
-    double totalTaxes = ordersFromTable.fold(
-      0,
-      (prev, e) => prev + e.totalTaxes,
-    );
-    double totalPriceWithoutTaxes = ordersFromTable.fold(
-      0,
-      (prev, e) => prev + e.totalPriceWithTaxes,
-    );
-    await (database.update(
-      database.orders,
-    )..where((e) => e.id.isValue(id))).write(
-      OrdersCompanion(
-        totalPrice: drift.Value(totalPrice),
-        totalTaxes: drift.Value(totalTaxes),
-        totalPriceWithTaxes: drift.Value(totalPriceWithoutTaxes),
-      ),
-    );
+    await DbUpdates.updatedOrders(widget.mesa.id);
+    getLines();
   }
 
   // *******************************
@@ -361,6 +343,18 @@ class _TableViewState extends State<TableView> {
     setState(() {
       priceText = priceLabel;
     });
+  }
+
+  void onCheckout() async {
+    DbUpdates.updatedOrders(widget.mesa.id);
+    final result = await showDialog(
+      context: context,
+      builder: (context) => Checkout(mesa: widget.mesa),
+    );
+    getLines();
+    if (result.isEmpty) {
+      //Navigator.of(context).pop();
+    }
   }
 
   // *******************************
@@ -386,6 +380,7 @@ class _TableViewState extends State<TableView> {
                     child: Keyboard(
                       onChangePriceText: onChangePriceText,
                       onEnter: onTapProduct,
+                      onCheckout: onCheckout,
                     ),
                   ),
                 ],
