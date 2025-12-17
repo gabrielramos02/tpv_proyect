@@ -14,7 +14,6 @@ import 'package:flutter_proyect/utils/db_updates.dart';
 import 'package:flutter_proyect/utils/edit_products_form.dart';
 import 'package:flutter_proyect/utils/edit_types_form.dart';
 import 'package:flutter_proyect/utils/free_price_form.dart';
-//TODO: Checkout, borrar Mesa
 
 class TableView extends StatefulWidget {
   const TableView({super.key, required this.mesa});
@@ -55,7 +54,6 @@ class _TableViewState extends State<TableView> {
     final result = response
         .map((row) => row.readTable(database.orderLines))
         .toList();
-    print(orderLines);
     setState(() {
       orderLines = result;
     });
@@ -224,7 +222,6 @@ class _TableViewState extends State<TableView> {
               order: orderFromTable.last.id,
             ),
           );
-      print(returnedOrder);
     } else {
       OrderLine oldProduct = orderLines.firstWhere(
         (e) => e.productName == producto.name && e.currentPrice == price,
@@ -347,13 +344,51 @@ class _TableViewState extends State<TableView> {
 
   void onCheckout() async {
     DbUpdates.updatedOrders(widget.mesa.id);
-    final result = await showDialog(
+    final List<Order> result = await showDialog(
       context: context,
       builder: (context) => Checkout(mesa: widget.mesa),
     );
     getLines();
     if (result.isEmpty) {
-      //Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    }
+  }
+
+  void onDeleteTable() async {
+    final result = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        content: Container(
+          padding: EdgeInsets.all(10),
+          child: Text(
+            "Estas seguro que deseas borrar la mesa?",
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(0);
+            },
+            child: Text('No', style: Theme.of(context).textTheme.bodyMedium),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(1);
+            },
+            child: Text('Si', style: Theme.of(context).textTheme.bodyMedium),
+          ),
+        ],
+      ),
+    );
+    if (result == 1) {
+      await (database.delete(database.orderLines)..where(
+            (e) => e.id.isIn(orderLines.map((line) => line.id).toList()),
+          ))
+          .go();
+      DbUpdates.updatedOrders(widget.mesa.id);
+      Navigator.of(context).pop();
     }
   }
 
@@ -381,6 +416,7 @@ class _TableViewState extends State<TableView> {
                       onChangePriceText: onChangePriceText,
                       onEnter: onTapProduct,
                       onCheckout: onCheckout,
+                      onDeleteTable: onDeleteTable,
                     ),
                   ),
                 ],

@@ -55,12 +55,24 @@ class _CheckoutState extends State<Checkout> {
       totalPrice = price;
       paymentList = paymentsFromOrder;
     });
-    print(orderList);
     inputControllerEfectivo.text = totalPrice.toString();
   }
 
+  Future<void> getPayed() async {
+    final List<Order> ordersFromTable =
+        await (database.select(database.orders)..where(
+              (e) => e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull(),
+            ))
+            .get();
+
+    double payed = ordersFromTable.fold(0, (prev, e) => prev + e.payedPrice);
+    setState(() {
+      pagado = payed;
+    });
+  }
+
   void onEnter() async {
-    if (double.parse(selected.text) > totalPrice) {
+    if (double.parse(selected.text) > (totalPrice - pagado)) {
       await database
           .into(database.payments)
           .insert(
@@ -68,6 +80,7 @@ class _CheckoutState extends State<Checkout> {
               paymentMethod: selectedName,
               payedAmount: double.parse(selected.text),
               order: orderList.first.id,
+              paymentDateTime: drift.Value(DateTime.now()),
             ),
           );
       await database
@@ -75,8 +88,9 @@ class _CheckoutState extends State<Checkout> {
           .insert(
             PaymentsCompanion.insert(
               paymentMethod: "Devolucion",
-              payedAmount: totalPrice - double.parse(selected.text),
+              payedAmount: totalPrice - double.parse(selected.text) - pagado,
               order: orderList.first.id,
+              paymentDateTime: drift.Value(DateTime.now()),
             ),
           );
     } else {
@@ -84,16 +98,19 @@ class _CheckoutState extends State<Checkout> {
           .into(database.payments)
           .insert(
             PaymentsCompanion.insert(
-              paymentMethod: "Devolucion",
-              payedAmount: totalPrice - double.parse(selected.text),
+              paymentMethod: selectedName,
+              payedAmount: double.parse(selected.text),
               order: orderList.first.id,
+              paymentDateTime: drift.Value(DateTime.now()),
             ),
           );
     }
-    getOrders();
-    DbUpdates.updatedOrders(widget.mesa.id);
     setState(() {
-      pagado = double.parse(selected.text);
+      pagado = pagado += double.parse(selected.text);
+    });
+    getOrders();
+    await DbUpdates.updatedOrders(widget.mesa.id);
+    setState(() {
       selected.text = "";
     });
   }
@@ -102,6 +119,7 @@ class _CheckoutState extends State<Checkout> {
   void initState() {
     super.initState();
     getOrders();
+    getPayed();
   }
 
   @override
@@ -215,7 +233,7 @@ class _CheckoutState extends State<Checkout> {
                                     child: Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        item.paymentDateTime.toString(),
+                                        item.paymentDateTime.toString().substring(0,19),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.labelLarge,
@@ -256,9 +274,7 @@ class _CheckoutState extends State<Checkout> {
                                 RegExp(r'^[0-9+*/.-]*$'),
                               ),
                             ],
-                            onChanged: (text) {
-                              print(text);
-                            },
+                            onChanged: (text) {},
                             onTap: () =>
                                 onSelected(inputControllerEfectivo, "Efectivo"),
                           ),
@@ -291,9 +307,7 @@ class _CheckoutState extends State<Checkout> {
                                 RegExp(r'^[0-9+*/.-]*$'),
                               ),
                             ],
-                            onChanged: (text) {
-                              print(text);
-                            },
+                            onChanged: (text) {},
                             onTap: () {
                               onSelected(inputControllerVisa, "Visa");
                             },
@@ -327,9 +341,7 @@ class _CheckoutState extends State<Checkout> {
                                 RegExp(r'^[0-9+*/.-]*$'),
                               ),
                             ],
-                            onChanged: (text) {
-                              print(text);
-                            },
+                            onChanged: (text) {},
                             onTap: () {
                               onSelected(inputControllerOtros, "Otros");
                             },
@@ -691,8 +703,16 @@ class _CheckoutState extends State<Checkout> {
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(orderList);
+          onPressed: () async {
+            final List<Order> ordersFromTable =
+                await (database.select(database.orders)..where(
+                      (e) =>
+                          e.restTable.isValue(widget.mesa.id) &
+                          e.closedAt.isNull(),
+                    ))
+                    .get();
+
+            Navigator.of(context).pop(ordersFromTable);
           },
           child: const Text('OK'),
         ),
@@ -708,7 +728,6 @@ Widget _buildButtonKeyboard(BuildContext context, String label) {
       style: ProyectStyles.buttonStyles(context),
       onPressed: () {
         inputControllerEfectivo.text += label;
-        print(inputControllerEfectivo.text);
       },
       child: Text(label, style: Theme.of(context).textTheme.titleLarge),
     ),
