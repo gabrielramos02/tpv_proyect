@@ -37,6 +37,12 @@ class _TableViewState extends State<TableView> {
     getProductTypes();
     getProducts();
   }
+  @override
+    void dispose() {
+      super.dispose();
+      DbUpdates.updatedOrders(widget.mesa.id);
+    }
+   
   // ***GETTERS***
 
   Future<void> getLines() async {
@@ -164,7 +170,7 @@ class _TableViewState extends State<TableView> {
   }
 
   void onTapProduct(ProductsClassData producto) async {
-    double price = producto.price;
+    double price = double.parse(producto.price.toStringAsFixed(2));
     OrderLine returnedOrder;
     if (priceText != "") {
       price = double.parse(priceText);
@@ -349,6 +355,7 @@ class _TableViewState extends State<TableView> {
       builder: (context) => Checkout(mesa: widget.mesa),
     );
     getLines();
+    DbUpdates.updatedOrders(widget.mesa.id);
     if (result.isEmpty) {
       Navigator.of(context).pop();
     }
@@ -381,13 +388,13 @@ class _TableViewState extends State<TableView> {
           ),
         ],
       ),
-    );
-    if (result == 1) {
+    )?? 0;
+    if (result == 1 && context.mounted) {
       await (database.delete(database.orderLines)..where(
             (e) => e.id.isIn(orderLines.map((line) => line.id).toList()),
           ))
           .go();
-      DbUpdates.updatedOrders(widget.mesa.id);
+      await DbUpdates.updatedOrders(widget.mesa.id);
       Navigator.of(context).pop();
     }
   }

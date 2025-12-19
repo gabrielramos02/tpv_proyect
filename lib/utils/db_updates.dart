@@ -9,6 +9,9 @@ class DbUpdates {
               return e.restTable.isValue(tableID) & e.closedAt.isNull();
             }))
             .get();
+    if (ordersFromTable.isNotEmpty) {
+    }
+    int tableState = 0;
 
     for (var order in ordersFromTable) {
       final List<OrderLine> orderLines = await (database.select(
@@ -23,7 +26,9 @@ class DbUpdates {
         double totalTaxes = orderLines.fold(0, (prev, e) => prev + e.taxPrice);
         totalTaxes = double.parse(totalTaxes.toStringAsFixed(2));
         double totalPriceWithoutTaxes = totalPrice - totalTaxes;
-        totalPriceWithoutTaxes = double.parse(totalPriceWithoutTaxes.toStringAsFixed(2));
+        totalPriceWithoutTaxes = double.parse(
+          totalPriceWithoutTaxes.toStringAsFixed(2),
+        );
 
         final List<Payment> paymentsList = await (database.select(
           database.payments,
@@ -33,33 +38,39 @@ class DbUpdates {
           (prev, e) => prev + e.payedAmount,
         );
 
-        totalPayed >= order.totalPrice
-            ? await (database.update(
-                database.orders,
-              )..where((e) => e.id.isValue(order.id))).write(
-                OrdersCompanion(
-                  totalPrice: Value(totalPrice),
-                  totalTaxes: Value(totalTaxes),
-                  totalPriceWithTaxes: Value(totalPriceWithoutTaxes),
-                  closedAt: Value(DateTime.now()),
-                  payedPrice: Value(totalPayed),
-                ),
-              )
-            : await (database.update(
-                database.orders,
-              )..where((e) => e.id.isValue(order.id))).write(
-                OrdersCompanion(
-                  totalPrice: Value(totalPrice),
-                  totalTaxes: Value(totalTaxes),
-                  totalPriceWithTaxes: Value(totalPriceWithoutTaxes),
-                  payedPrice: Value(totalPayed),
-                ),
-              );
+        if (totalPayed >= order.totalPrice) {
+          await (database.update(
+            database.orders,
+          )..where((e) => e.id.isValue(order.id))).write(
+            OrdersCompanion(
+              totalPrice: Value(totalPrice),
+              totalTaxes: Value(totalTaxes),
+              totalPriceWithTaxes: Value(totalPriceWithoutTaxes),
+              closedAt: Value(DateTime.now()),
+              payedPrice: Value(totalPayed),
+            ),
+          );
+        } else {
+          await (database.update(
+            database.orders,
+          )..where((e) => e.id.isValue(order.id))).write(
+            OrdersCompanion(
+              totalPrice: Value(totalPrice),
+              totalTaxes: Value(totalTaxes),
+              totalPriceWithTaxes: Value(totalPriceWithoutTaxes),
+              payedPrice: Value(totalPayed),
+            ),
+          );
+          tableState = 1;
+        }
       } else {
         await (database.delete(
           database.orders,
         )..whereSamePrimaryKey(order)).go();
       }
+      await (database.update(database.restTables)
+            ..where((e) => e.id.isValue(tableID)))
+          .write(RestTablesCompanion(state: Value(tableState)));
     }
 
     //**************************************************

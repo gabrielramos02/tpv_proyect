@@ -14,6 +14,7 @@ class ZoneView extends StatefulWidget {
 }
 
 class _ZoneViewState extends State<ZoneView> {
+  List<Color?> stateList = [Colors.blue[100], Colors.yellow[100], Colors.green];
   List<RestTable> tableList = [];
   bool deleteTable = false;
   bool showSnackBar = false;
@@ -43,17 +44,17 @@ class _ZoneViewState extends State<ZoneView> {
       context: context,
       builder: (context) => NewTableForm(),
     );
-    if(response!= ""){
-    await database
-        .into(database.restTables)
-        .insert(
-          RestTablesCompanion.insert(
-            number: response,
-            top: 10,
-            left: 20,
-            state: 0,
-          ),
-        );
+    if (response != "") {
+      await database
+          .into(database.restTables)
+          .insert(
+            RestTablesCompanion.insert(
+              number: response,
+              top: 10,
+              left: 20,
+              state: 0,
+            ),
+          );
     }
     getTables();
   }
@@ -78,11 +79,12 @@ class _ZoneViewState extends State<ZoneView> {
     });
   }
 
-  void onTablePressed(RestTable mesa) {
-    Navigator.push(
+  void onTablePressed(RestTable mesa) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TableView(mesa: mesa)),
     );
+    getTables();
   }
 
   void onShowSnackBar() {
@@ -215,14 +217,12 @@ class _ZoneViewState extends State<ZoneView> {
                       },
                       onDragStarted: () {},
                       feedback: Container(
-                        width: 80,
-                        height: 80,
+                        width: 100,
+                        height: 100,
                         margin: EdgeInsets.all(5),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).primaryColorLight,
+                            backgroundColor: stateList[index.state],
                             alignment: AlignmentGeometry.center,
                             side: BorderSide(color: Colors.black),
                             padding: EdgeInsets.all(14),
@@ -239,14 +239,12 @@ class _ZoneViewState extends State<ZoneView> {
                         ),
                       ),
                       child: Container(
-                        width: 80,
-                        height: 80,
+                        width: 100,
+                        height: 100,
                         margin: EdgeInsets.all(5),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).primaryColorLight,
+                            backgroundColor: stateList[index.state],
                             alignment: AlignmentGeometry.center,
                             side: BorderSide(color: Colors.black),
                             padding: EdgeInsets.all(14),

@@ -219,7 +219,7 @@ class _CheckoutState extends State<Checkout> {
                                     child: Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        "${item.payedAmount.toString()} €",
+                                        "${item.payedAmount.toStringAsFixed(2)} €",
                                         style: Theme.of(
                                           context,
                                         ).textTheme.labelLarge,
@@ -455,7 +455,7 @@ class _CheckoutState extends State<Checkout> {
                               width: 150,
                               child: Text(
                                 pagado > totalPrice
-                                    ? (pagado - totalPrice).toString()
+                                    ? (pagado - totalPrice).toStringAsFixed(2)
                                     : "0",
                                 style: TextStyle(fontSize: 22),
                                 textAlign: TextAlign.end,
