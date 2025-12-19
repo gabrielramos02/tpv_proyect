@@ -13,11 +13,13 @@ class Keyboard extends StatefulWidget {
     required this.onEnter,
     required this.onCheckout,
     required this.onDeleteTable,
+    required this.onSplitTable,
   });
   final void Function(String) onChangePriceText;
   final void Function(ProductsClassData) onEnter;
   final void Function() onCheckout;
   final void Function() onDeleteTable;
+  final void Function() onSplitTable;
 
   @override
   State<Keyboard> createState() => _KeyboardState();
@@ -251,9 +253,21 @@ class _KeyboardState extends State<Keyboard> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(
-                                child: _buildButtonText(
-                                  context,
-                                  "Separar Mesa",
+                                child: Container(
+                                  margin: EdgeInsets.all(4),
+                                  child: ElevatedButton(
+                                    style: ProyectStyles.buttonStyles(context),
+                                    onPressed: () {
+                                      widget.onSplitTable();
+                                    },
+                                    child: Text(
+                                      "Separar Mesa",
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
                                 ),
                               ),
                               Expanded(

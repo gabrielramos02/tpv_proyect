@@ -13,8 +13,8 @@ TextEditingController inputControllerVisa = TextEditingController(text: "");
 TextEditingController inputControllerOtros = TextEditingController(text: "");
 
 class Checkout extends StatefulWidget {
-  const Checkout({super.key, required this.mesa});
-  final RestTable mesa;
+  const Checkout({super.key, required this.mesaID});
+  final int mesaID;
 
   @override
   State<Checkout> createState() => _CheckoutState();
@@ -40,7 +40,7 @@ class _CheckoutState extends State<Checkout> {
   Future<void> getOrders() async {
     final List<Order> ordersFromTable =
         await (database.select(database.orders)..where(
-              (e) => e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull(),
+              (e) => e.restTable.isValue(widget.mesaID) & e.closedAt.isNull(),
             ))
             .get();
 
@@ -61,7 +61,7 @@ class _CheckoutState extends State<Checkout> {
   Future<void> getPayed() async {
     final List<Order> ordersFromTable =
         await (database.select(database.orders)..where(
-              (e) => e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull(),
+              (e) => e.restTable.isValue(widget.mesaID) & e.closedAt.isNull(),
             ))
             .get();
 
@@ -109,7 +109,7 @@ class _CheckoutState extends State<Checkout> {
       pagado = pagado += double.parse(selected.text);
     });
     getOrders();
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(widget.mesaID);
     setState(() {
       selected.text = "";
     });
@@ -707,7 +707,7 @@ class _CheckoutState extends State<Checkout> {
             final List<Order> ordersFromTable =
                 await (database.select(database.orders)..where(
                       (e) =>
-                          e.restTable.isValue(widget.mesa.id) &
+                          e.restTable.isValue(widget.mesaID) &
                           e.closedAt.isNull(),
                     ))
                     .get();

@@ -14,6 +14,7 @@ import 'package:flutter_proyect/utils/db_updates.dart';
 import 'package:flutter_proyect/utils/edit_products_form.dart';
 import 'package:flutter_proyect/utils/edit_types_form.dart';
 import 'package:flutter_proyect/utils/free_price_form.dart';
+import 'package:flutter_proyect/utils/split_table.dart';
 
 class TableView extends StatefulWidget {
   const TableView({super.key, required this.mesa});
@@ -352,13 +353,22 @@ class _TableViewState extends State<TableView> {
     DbUpdates.updatedOrders(widget.mesa.id);
     final List<Order> result = await showDialog(
       context: context,
-      builder: (context) => Checkout(mesa: widget.mesa),
+      builder: (context) => Checkout(mesaID: widget.mesa.id),
     );
     getLines();
     DbUpdates.updatedOrders(widget.mesa.id);
     if (result.isEmpty) {
       Navigator.of(context).pop();
     }
+  }
+  void onSplitTable() async {
+    DbUpdates.updatedOrders(widget.mesa.id);
+    final result = await showDialog(
+      context: context,
+      builder: (context) => SplitTable(orderLines: orderLines),
+    );
+    getLines();
+    DbUpdates.updatedOrders(widget.mesa.id);
   }
 
   void onDeleteTable() async {
@@ -424,6 +434,7 @@ class _TableViewState extends State<TableView> {
                       onEnter: onTapProduct,
                       onCheckout: onCheckout,
                       onDeleteTable: onDeleteTable,
+                      onSplitTable: onSplitTable,
                     ),
                   ),
                 ],
