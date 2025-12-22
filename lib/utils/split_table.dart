@@ -1,13 +1,15 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/utils/checkout.dart';
+import 'package:flutter_proyect/utils/db_updates.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 import '../main.dart';
 
 class SplitTable extends StatefulWidget {
-  const SplitTable({super.key, required this.orderLines});
-  final List<OrderLine> orderLines;
+  const SplitTable({super.key, required this.mesaID});
+  final int mesaID;
 
   @override
   State<SplitTable> createState() => _SplitTableState();
@@ -16,7 +18,8 @@ class SplitTable extends StatefulWidget {
 class _SplitTableState extends State<SplitTable> {
   List<OrderLine> leftList = [];
   List<OrderLine> rightList = [];
-
+  late Order splitTableOrder;
+  late int leftLineOrder;
   double totalPrecioLeft() {
     return leftList.fold(
       0,
@@ -39,20 +42,189 @@ class _SplitTableState extends State<SplitTable> {
     );
   }
 
-  void MoveLeft(OrderLine pressed) {
-    print("Move Left");
+  Future<void> newOrder() async {
+    Order newSplitTableOrder = await database
+        .into(database.orders)
+        .insertReturning(
+          OrdersCompanion.insert(
+            totalPrice: 0,
+            payedPrice: 0,
+            totalTaxes: 0,
+            totalPriceWithTaxes: 0,
+            state: 0,
+            restTable: 99,
+          ),
+        );
+    setState(() {
+      splitTableOrder = newSplitTableOrder;
+    });
   }
 
-  void MoveRight(OrderLine pressed) {
-    print("Move Right");
+  Future<void> getLeftLines() async {
+    final response =
+        await (database.select(database.orderLines).join([
+              drift.innerJoin(
+                database.orders,
+                database.orders.id.equalsExp(database.orderLines.order),
+              ),
+            ])..where(
+              database.orders.restTable.equals(widget.mesaID) &
+                  database.orders.closedAt.isNull(),
+            ))
+            .get();
+    final result = response
+        .map((row) => row.readTable(database.orderLines))
+        .toList();
+    setState(() {
+      leftList = result;
+      leftLineOrder = result[0].order;
+    });
+  }
+
+  Future<void> getRightLines() async {
+    final response = await (database.select(
+      database.orderLines,
+    )..where((e) => e.order.isValue(splitTableOrder.id))).get();
+    setState(() {
+      rightList = response;
+    });
+  }
+
+  void onMoveRight(OrderLine pressed) async {
+    //Changes on leftLine
+    if (pressed.quantity > 1) {
+      await (database.update(
+        database.orderLines,
+      )..whereSamePrimaryKey(pressed)).write(
+        pressed.copyWith(
+          quantity: pressed.quantity - 1,
+          totalPrice: pressed.totalPrice - pressed.currentPrice,
+          taxPrice:
+              (pressed.totalPrice - pressed.currentPrice) * pressed.taxRate,
+        ),
+      );
+    } else {
+      await (database.delete(
+        database.orderLines,
+      )..whereSamePrimaryKey(pressed)).go();
+    }
+
+    //Changes on rightLine
+    int indexRightLine = rightList.indexWhere(
+      (e) =>
+          e.productName == pressed.productName &&
+          e.currentPrice == pressed.currentPrice,
+    );
+    if (indexRightLine != -1) {
+      OrderLine orderOnIndex = rightList[indexRightLine];
+      await (database.update(
+        database.orderLines,
+      )..whereSamePrimaryKey(orderOnIndex)).write(
+        orderOnIndex.copyWith(
+          quantity: orderOnIndex.quantity + 1,
+          totalPrice: orderOnIndex.totalPrice + orderOnIndex.currentPrice,
+          taxPrice:
+              (orderOnIndex.totalPrice + orderOnIndex.currentPrice) *
+              orderOnIndex.taxRate,
+        ),
+      );
+    } else {
+      await database
+          .into(database.orderLines)
+          .insert(
+            OrderLinesCompanion.insert(
+              productName: pressed.productName,
+              currentPrice: pressed.currentPrice,
+              totalPrice: pressed.currentPrice,
+              taxRate: pressed.taxRate,
+              taxPrice: pressed.currentPrice * pressed.taxRate,
+              quantity: 1,
+              order: splitTableOrder.id,
+            ),
+          );
+    }
+    getLeftLines();
+    getRightLines();
+  }
+
+  void onMoveLeft(OrderLine pressed) async {
+    //Changes on rightLine
+    if (pressed.quantity > 1) {
+      await (database.update(
+        database.orderLines,
+      )..whereSamePrimaryKey(pressed)).write(
+        pressed.copyWith(
+          quantity: pressed.quantity - 1,
+          totalPrice: pressed.totalPrice - pressed.currentPrice,
+          taxPrice:
+              (pressed.totalPrice - pressed.currentPrice) * pressed.taxRate,
+        ),
+      );
+    } else {
+      await (database.delete(
+        database.orderLines,
+      )..whereSamePrimaryKey(pressed)).go();
+    }
+
+    //Changes on leftLine
+    int indexLeftLine = leftList.indexWhere(
+      (e) =>
+          e.productName == pressed.productName &&
+          e.currentPrice == pressed.currentPrice,
+    );
+    if (indexLeftLine != -1) {
+      OrderLine orderOnIndex = leftList[indexLeftLine];
+      await (database.update(
+        database.orderLines,
+      )..whereSamePrimaryKey(orderOnIndex)).write(
+        orderOnIndex.copyWith(
+          quantity: orderOnIndex.quantity + 1,
+          totalPrice: orderOnIndex.totalPrice + orderOnIndex.currentPrice,
+          taxPrice:
+              (orderOnIndex.totalPrice + orderOnIndex.currentPrice) *
+              orderOnIndex.taxRate,
+        ),
+      );
+    } else {
+      await database
+          .into(database.orderLines)
+          .insert(
+            OrderLinesCompanion.insert(
+              productName: pressed.productName,
+              currentPrice: pressed.currentPrice,
+              totalPrice: pressed.currentPrice,
+              taxRate: pressed.taxRate,
+              taxPrice: pressed.currentPrice * pressed.taxRate,
+              quantity: 1,
+              order: leftLineOrder,
+            ),
+          );
+    }
+    getLeftLines();
+    getRightLines();
+  }
+
+  void onCheckout() async {
+    DbUpdates.updatedOrders(99);
+    DbUpdates.updatedOrders(widget.mesaID);
+    final List<Order> result = await showDialog(
+      context: context,
+      builder: (context) => Checkout(mesaID: 99),
+    );
+    getRightLines();
+    getLeftLines();
+    DbUpdates.updatedOrders(99);
+    DbUpdates.updatedOrders(widget.mesaID);
+    if (result.isEmpty) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      leftList = widget.orderLines;
-    });
+    newOrder();
+    getLeftLines();
   }
 
   @override
@@ -155,7 +327,7 @@ class _SplitTableState extends State<SplitTable> {
                                           ),
                                         ),
                                         onTap: () {
-                                          MoveRight(item);
+                                          onMoveRight(item);
                                         },
                                       ),
                                     ),
@@ -170,7 +342,7 @@ class _SplitTableState extends State<SplitTable> {
                                             ).textTheme.labelLarge,
                                           ),
                                         ),
-                                        onTap: () => MoveRight(item),
+                                        onTap: () => onMoveRight(item),
                                       ),
                                     ),
                                     TableCell(
@@ -200,7 +372,7 @@ class _SplitTableState extends State<SplitTable> {
                                             textAlign: TextAlign.end,
                                           ),
                                         ),
-                                        onTap: () => MoveRight(item),
+                                        onTap: () => onMoveRight(item),
                                       ),
                                     ),
                                   ],
@@ -319,7 +491,7 @@ class _SplitTableState extends State<SplitTable> {
                                             textAlign: TextAlign.end,
                                           ),
                                         ),
-                                        onTap: () => MoveLeft(item),
+                                        onTap: () => onMoveLeft(item),
                                       ),
                                     ),
                                     TableCell(
@@ -333,7 +505,7 @@ class _SplitTableState extends State<SplitTable> {
                                             ).textTheme.labelLarge,
                                           ),
                                         ),
-                                        onTap: () => MoveLeft(item),
+                                        onTap: () => onMoveLeft(item),
                                       ),
                                     ),
                                     TableCell(
@@ -348,7 +520,7 @@ class _SplitTableState extends State<SplitTable> {
                                             textAlign: TextAlign.end,
                                           ),
                                         ),
-                                        onTap: () => MoveLeft(item),
+                                        onTap: () => onMoveLeft(item),
                                       ),
                                     ),
                                     TableCell(
@@ -412,7 +584,9 @@ class _SplitTableState extends State<SplitTable> {
                           margin: EdgeInsets.symmetric(horizontal: 10),
                           child: ElevatedButton(
                             style: ProyectStyles.buttonStyles(context),
-                            onPressed: () {},
+                            onPressed: () {
+                              onCheckout();
+                            },
                             child: Text(
                               "Cobrar",
                               style: Theme.of(context).textTheme.titleLarge,
@@ -432,7 +606,9 @@ class _SplitTableState extends State<SplitTable> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            if (rightList.isEmpty) {
+              Navigator.of(context).pop();
+            }
           },
           child: const Text('OK'),
         ),

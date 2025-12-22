@@ -22,6 +22,7 @@ class DbUpdates {
           0,
           (prev, e) => prev + e.totalPrice,
         );
+
         totalPrice = double.parse(totalPrice.toStringAsFixed(2));
         double totalTaxes = orderLines.fold(0, (prev, e) => prev + e.taxPrice);
         totalTaxes = double.parse(totalTaxes.toStringAsFixed(2));
@@ -38,7 +39,7 @@ class DbUpdates {
           (prev, e) => prev + e.payedAmount,
         );
 
-        if (totalPayed >= order.totalPrice) {
+        if (totalPayed >= totalPrice) {
           await (database.update(
             database.orders,
           )..where((e) => e.id.isValue(order.id))).write(

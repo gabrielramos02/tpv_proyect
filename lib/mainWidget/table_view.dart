@@ -365,7 +365,7 @@ class _TableViewState extends State<TableView> {
     DbUpdates.updatedOrders(widget.mesa.id);
     final result = await showDialog(
       context: context,
-      builder: (context) => SplitTable(orderLines: orderLines),
+      builder: (context) => SplitTable(mesaID: widget.mesa.id),
     );
     getLines();
     DbUpdates.updatedOrders(widget.mesa.id);
