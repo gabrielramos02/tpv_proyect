@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 class Products extends StatelessWidget {
   final List<ProductsClassData> productsList;
@@ -18,7 +19,7 @@ class Products extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: EdgeInsets.all(8),
+        margin: EdgeInsets.all(2),
         decoration: BoxDecoration(border: BoxBorder.all(color: Colors.black)),
         child: Column(
           children: [
@@ -28,28 +29,20 @@ class Products extends StatelessWidget {
             ),
             Expanded(
               child: GridView.count(
-                crossAxisCount: 8,
+                crossAxisCount: 6,
                 children: [
                   ...productsList.map((index) {
                     return Container(
                       margin: EdgeInsets.all(5),
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColorLight,
-                          alignment: AlignmentGeometry.center,
-                          side: BorderSide(color: Colors.black),
-                          padding: EdgeInsets.all(14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
+                        style: ProyectStyles.buttonStyles(context),
                         onPressed: () {onTapProduct(index);},
                         onLongPress: () {
                           onEditProduct(index);
                         },
                         child: Text(
                           index.name,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: Theme.of(context).textTheme.titleSmall,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -58,15 +51,7 @@ class Products extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.all(5),
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColorLight,
-                        alignment: AlignmentGeometry.center,
-                        side: BorderSide(color: Colors.black),
-                        padding: EdgeInsets.all(14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(1),
-                        ),
-                      ),
+                      style: ProyectStyles.buttonStyles(context),
                       onPressed: () {
                         onAddProduct();
                       },

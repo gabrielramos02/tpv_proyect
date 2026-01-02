@@ -88,7 +88,7 @@ class EditProduct extends StatelessWidget {
                       onCancelEdit();
                     },
                     child: Text(
-                      "Back",
+                      "Atras",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
@@ -98,7 +98,7 @@ class EditProduct extends StatelessWidget {
                       onRemoveProduct(product);
                     },
                     child: Text(
-                      "Remove",
+                      "Eliminar",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),

@@ -20,7 +20,6 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.10.0
-
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -39,6 +38,7 @@ dependencies:
   drift: ^2.29.0
   drift_flutter: ^0.2.7
   path_provider: ^2.1.5
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:

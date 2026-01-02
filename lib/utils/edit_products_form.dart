@@ -111,7 +111,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
           onPressed: () {
             Navigator.of(context).pop({"":""});
           },
-          child: const Text('Remove'),
+          child: const Text('Eliminar'),
         ),
         TextButton(
           onPressed: () {

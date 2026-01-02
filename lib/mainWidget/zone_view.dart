@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
@@ -70,13 +71,44 @@ class _ZoneViewState extends State<ZoneView> {
   }
 
   Future<void> onExit() async {
-    (database.delete(
-      database.restTables,
-    )..where((e) => e.top.isBiggerThanValue(5))).go();
-    final result = await database.select(database.restTables).get();
-    setState(() {
-      tableList = result;
-    });
+    final result =
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            actionsAlignment: MainAxisAlignment.spaceBetween,
+            content: Container(
+              padding: EdgeInsets.all(10),
+              child: Text(
+                "Estas seguro que deseas salir?",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: Text(
+                  'No',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text(
+                  'Si',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (result && context.mounted) {
+      SystemNavigator.pop();
+    }
   }
 
   void onTablePressed(RestTable mesa) async {
@@ -191,7 +223,7 @@ class _ZoneViewState extends State<ZoneView> {
                       await onExit();
                     },
                     child: Text(
-                      "Exit",
+                      "Salir",
                       style: Theme.of(context).textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),

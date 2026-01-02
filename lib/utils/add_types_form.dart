@@ -44,11 +44,16 @@ class _AddTypesFormState extends State<AddTypesForm> {
           onPressed: () {
             Navigator.of(context).pop(Map());
           },
-          child: const Text('Cancel'),
+          child: const Text('Cancelar'),
         ),
         TextButton(
           onPressed: () {
-              final ProductTypesTableCompanion response = ProductTypesTableCompanion.insert(name: name, color: "", order: 0);
+            final ProductTypesTableCompanion response =
+                ProductTypesTableCompanion.insert(
+                  name: name,
+                  color: "",
+                  order: 0,
+                );
             Navigator.of(context).pop(response);
           },
           child: const Text('OK'),

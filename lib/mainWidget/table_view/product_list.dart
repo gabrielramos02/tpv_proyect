@@ -31,7 +31,7 @@ class ProductList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: EdgeInsets.all(8),
+        margin: EdgeInsets.all(2),
         decoration: BoxDecoration(border: BoxBorder.all(color: Colors.black)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -55,135 +55,138 @@ class ProductList extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Container(
-                margin: EdgeInsets.only(top: 4),
-                child: Table(
-                  columnWidths: const <int, TableColumnWidth>{
-                    0: IntrinsicColumnWidth(),
-                    1: FlexColumnWidth(2),
-                    2: IntrinsicColumnWidth(),
-                    3: IntrinsicColumnWidth(),
-                  },
-                  border: TableBorder.all(color: Colors.grey, width: 1.0),
-                  children: [
-                    // Fila del encabezado
-                    TableRow(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      children: <Widget>[
-                        TableCell(
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'Cant.',
-                              style: Theme.of(
-                                context,
-                              ).primaryTextTheme.labelLarge,
-                            ),
-                          ),
+              child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+                child: Container(
+                  margin: EdgeInsets.only(top: 4),
+                  child: Table(
+                    columnWidths: const <int, TableColumnWidth>{
+                      0: IntrinsicColumnWidth(),
+                      1: FlexColumnWidth(2),
+                      2: IntrinsicColumnWidth(),
+                      3: IntrinsicColumnWidth(),
+                    },
+                    border: TableBorder.all(color: Colors.grey, width: 1.0),
+                    children: [
+                      // Fila del encabezado
+                      TableRow(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
                         ),
-                        TableCell(
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'Producto',
-                              style: Theme.of(
-                                context,
-                              ).primaryTextTheme.labelLarge,
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'PVP',
-                              style: Theme.of(
-                                context,
-                              ).primaryTextTheme.labelLarge,
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'Importe',
-                              style: Theme.of(
-                                context,
-                              ).primaryTextTheme.labelLarge,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    ...items.map((item) {
-                      return TableRow(
                         children: <Widget>[
                           TableCell(
-                            child: InkWell(
-                              child: Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  item.quantity.toString(),
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                  textAlign: TextAlign.end,
-                                ),
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Cant.',
+                                style: Theme.of(
+                                  context,
+                                ).primaryTextTheme.labelLarge,
                               ),
-                              onTap: () {
-                                onSelectProduct(item.toJson());
-                              },
                             ),
                           ),
                           TableCell(
-                            child: InkWell(
-                              child: Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  item.productName.toString(),
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                ),
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Producto',
+                                style: Theme.of(
+                                  context,
+                                ).primaryTextTheme.labelLarge,
                               ),
-                              onTap: () {
-                                onSelectProduct(item.toJson());
-                              },
                             ),
                           ),
                           TableCell(
-                            child: InkWell(
-                              child: Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  "${item.currentPrice.toString()}€",
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                  textAlign: TextAlign.end,
-                                ),
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'PVP',
+                                style: Theme.of(
+                                  context,
+                                ).primaryTextTheme.labelLarge,
                               ),
-                              onTap: () {
-                                onSelectProduct(item.toJson());
-                              },
                             ),
                           ),
                           TableCell(
-                            child: InkWell(
-                              child: Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  '${double.parse(((item.quantity) * (item.currentPrice)).toStringAsFixed(2))}€',
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                  textAlign: TextAlign.end,
-                                ),
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Importe',
+                                style: Theme.of(
+                                  context,
+                                ).primaryTextTheme.labelLarge,
                               ),
-                              onTap: () {
-                                onSelectProduct(item.toJson());
-                              },
                             ),
                           ),
                         ],
-                      );
-                    }),
-                  ],
+                      ),
+                      ...items.map((item) {
+                        return TableRow(
+                          children: <Widget>[
+                            TableCell(
+                              child: InkWell(
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    item.quantity.toString(),
+                                    style: Theme.of(context).textTheme.labelLarge,
+                                    textAlign: TextAlign.end,
+                                  ),
+                                ),
+                                onTap: () {
+                                  onSelectProduct(item.toJson());
+                                },
+                              ),
+                            ),
+                            TableCell(
+                              child: InkWell(
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    item.productName.toString(),
+                                    style: Theme.of(context).textTheme.labelLarge,
+                                  ),
+                                ),
+                                onTap: () {
+                                  onSelectProduct(item.toJson());
+                                },
+                              ),
+                            ),
+                            TableCell(
+                              child: InkWell(
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "${item.currentPrice.toString()}€",
+                                    style: Theme.of(context).textTheme.labelLarge,
+                                    textAlign: TextAlign.end,
+                                  ),
+                                ),
+                                onTap: () {
+                                  onSelectProduct(item.toJson());
+                                },
+                              ),
+                            ),
+                            TableCell(
+                              child: InkWell(
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    '${double.parse(((item.quantity) * (item.currentPrice)).toStringAsFixed(2))}€',
+                                    style: Theme.of(context).textTheme.labelLarge,
+                                    textAlign: TextAlign.end,
+                                  ),
+                                ),
+                                onTap: () {
+                                  onSelectProduct(item.toJson());
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
             ),

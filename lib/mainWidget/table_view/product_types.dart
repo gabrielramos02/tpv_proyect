@@ -19,7 +19,7 @@ class ProductTypes extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: EdgeInsets.all(8),
+        margin: EdgeInsets.all(2),
         decoration: BoxDecoration(border: BoxBorder.all(color: Colors.black)),
         child: Column(
           children: [
@@ -33,7 +33,7 @@ class ProductTypes extends StatelessWidget {
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {Navigator.pop(context);},
                     child: Text(
-                      "Exit",
+                      "Salir",
                       style: Theme.of(context).textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
@@ -43,7 +43,7 @@ class ProductTypes extends StatelessWidget {
             ),
             Expanded(
               child: GridView.count(
-                crossAxisCount: 8,
+                crossAxisCount: 6,
                 children: [
                   ...productTypesList.map((index) {
                     return Container(
@@ -58,7 +58,7 @@ class ProductTypes extends StatelessWidget {
                         },
                         child: Text(
                           index.name,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: Theme.of(context).textTheme.titleSmall,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -71,7 +71,7 @@ class ProductTypes extends StatelessWidget {
                         backgroundColor: Theme.of(context).primaryColorLight,
                         alignment: AlignmentGeometry.center,
                         side: BorderSide(color: Colors.black),
-                        padding: EdgeInsets.all(14),
+                        padding: EdgeInsets.all(8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(1),
                         ),
@@ -79,7 +79,7 @@ class ProductTypes extends StatelessWidget {
                       onPressed: () {onAddType();},
                       child: Text(
                         "+",
-                        style: Theme.of(context).textTheme.headlineLarge,
+                        style: Theme.of(context).textTheme.titleLarge,
                         textAlign: TextAlign.center,
                       ),
                     ),

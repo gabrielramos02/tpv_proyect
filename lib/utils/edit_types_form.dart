@@ -52,7 +52,7 @@ class _EditTypesFormState extends State<EditTypesForm> {
           onPressed: () {
             Navigator.of(context).pop({"": ""});
           },
-          child: const Text('Remove'),
+          child: const Text('Eliminar'),
         ),
         TextButton(
           onPressed: () {

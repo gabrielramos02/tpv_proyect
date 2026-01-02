@@ -41,7 +41,7 @@ class _KeyboardState extends State<Keyboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: EdgeInsets.all(8),
+        margin: EdgeInsets.all(2),
         decoration: BoxDecoration(border: BoxBorder.all(color: Colors.black)),
         child: Column(
           children: [
@@ -106,7 +106,7 @@ class _KeyboardState extends State<Keyboard> {
                               Expanded(child: Container()),
                               Expanded(
                                 child: Container(
-                                  margin: EdgeInsets.all(4),
+                                  padding: EdgeInsets.all(2),
                                   child: ElevatedButton(
                                     style: ProyectStyles.buttonStyles(context),
                                     onPressed: () {
@@ -116,7 +116,7 @@ class _KeyboardState extends State<Keyboard> {
                                       "Cobrar",
                                       style: Theme.of(
                                         context,
-                                      ).textTheme.titleMedium,
+                                      ).textTheme.labelMedium,
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
@@ -138,7 +138,7 @@ class _KeyboardState extends State<Keyboard> {
                               ),
                               Expanded(
                                 child: Container(
-                                  margin: EdgeInsets.all(4),
+                                  padding: EdgeInsets.all(2),
                                   child: ElevatedButton(
                                     style: ProyectStyles.buttonStyles(context),
                                     onPressed: () {
@@ -148,7 +148,7 @@ class _KeyboardState extends State<Keyboard> {
                                       "Borrar Mesa",
                                       style: Theme.of(
                                         context,
-                                      ).textTheme.titleMedium,
+                                      ).textTheme.labelMedium,
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
@@ -254,7 +254,7 @@ class _KeyboardState extends State<Keyboard> {
                             children: [
                               Expanded(
                                 child: Container(
-                                  margin: EdgeInsets.all(4),
+                                  padding: EdgeInsets.all(2),
                                   child: ElevatedButton(
                                     style: ProyectStyles.buttonStyles(context),
                                     onPressed: () {
@@ -264,7 +264,7 @@ class _KeyboardState extends State<Keyboard> {
                                       "Separar Mesa",
                                       style: Theme.of(
                                         context,
-                                      ).textTheme.titleMedium,
+                                      ).textTheme.labelMedium,
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
@@ -291,7 +291,7 @@ class _KeyboardState extends State<Keyboard> {
                         Expanded(
                           flex: 1,
                           child: Container(
-                            margin: EdgeInsets.all(4),
+                            padding: EdgeInsets.all(2),
                             child: ElevatedButton(
                               style: ProyectStyles.buttonStyles(context),
                               onPressed: () {
@@ -320,7 +320,7 @@ class _KeyboardState extends State<Keyboard> {
                         Expanded(
                           flex: 2,
                           child: Container(
-                            margin: EdgeInsets.all(4),
+                            padding: EdgeInsets.all(2),
                             child: ElevatedButton(
                               style: ProyectStyles.buttonStyles(context),
                               onPressed: () {
@@ -364,26 +364,26 @@ class _KeyboardState extends State<Keyboard> {
 
 Widget _buildButtonKeyboard(BuildContext context, String label) {
   return Container(
-    margin: EdgeInsets.all(4),
+    padding: EdgeInsets.all(2),
     child: ElevatedButton(
       style: ProyectStyles.buttonStyles(context),
       onPressed: () {
         inputController.text += label;
       },
-      child: Text(label, style: Theme.of(context).textTheme.titleLarge),
+      child: Text(label, style: Theme.of(context).textTheme.titleSmall),
     ),
   );
 }
 
 Widget _buildButtonText(BuildContext context, String label) {
   return Container(
-    margin: EdgeInsets.all(4),
+    padding: EdgeInsets.all(2),
     child: ElevatedButton(
       style: ProyectStyles.buttonStyles(context),
       onPressed: () {},
       child: Text(
         label,
-        style: Theme.of(context).textTheme.titleMedium,
+        style: Theme.of(context).textTheme.titleSmall,
         textAlign: TextAlign.center,
       ),
     ),

@@ -6,7 +6,7 @@ class ProyectStyles {
       backgroundColor: Theme.of(context).primaryColorLight,
       alignment: AlignmentGeometry.center,
       side: BorderSide(color: Colors.black),
-      padding: EdgeInsets.all(14),
+      padding: EdgeInsets.all(8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
     );
   }
