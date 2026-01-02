@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
+import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/new_table_form.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
@@ -118,6 +119,13 @@ class _ZoneViewState extends State<ZoneView> {
     );
     getTables();
   }
+  void onPrintConfig() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => PrintConfigView()),
+    );
+    getTables();
+  }
 
   void onShowSnackBar() {
     final snackBar = SnackBar(
@@ -195,7 +203,7 @@ class _ZoneViewState extends State<ZoneView> {
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   child: ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {},
+                    onPressed: ()=>onPrintConfig(),
                     child: Text(
                       "Config",
                       style: Theme.of(context).textTheme.titleLarge,

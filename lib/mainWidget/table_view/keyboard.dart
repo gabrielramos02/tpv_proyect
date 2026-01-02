@@ -14,12 +14,14 @@ class Keyboard extends StatefulWidget {
     required this.onCheckout,
     required this.onDeleteTable,
     required this.onSplitTable,
+    required this.onPrintReceive,
   });
   final void Function(String) onChangePriceText;
   final void Function(ProductsClassData) onEnter;
   final void Function() onCheckout;
   final void Function() onDeleteTable;
   final void Function() onSplitTable;
+  final Future Function() onPrintReceive;
 
   @override
   State<Keyboard> createState() => _KeyboardState();
@@ -134,7 +136,22 @@ class _KeyboardState extends State<Keyboard> {
                                 child: _buildButtonText(context, "Cajon"),
                               ),
                               Expanded(
-                                child: _buildButtonText(context, "Factura"),
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  child: ElevatedButton(
+                                    style: ProyectStyles.buttonStyles(context),
+                                    onPressed: () {
+                                        widget.onPrintReceive();
+                                    },
+                                    child: Text(
+                                      "Factura",
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.labelMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
                               ),
                               Expanded(
                                 child: Container(
