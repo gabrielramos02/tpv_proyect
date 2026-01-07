@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:drift/drift.dart' as drift;
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_launcher_icons/config/config.dart';
 import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
@@ -14,6 +13,7 @@ import 'package:flutter_proyect/mainWidget/table_view/product_list.dart';
 import 'package:flutter_proyect/mainWidget/table_view/product_types.dart';
 import 'package:flutter_proyect/mainWidget/table_view/products.dart';
 import 'package:flutter_proyect/utils/add_products_form.dart';
+import 'package:flutter_proyect/utils/print/print_ticket.dart';
 import 'package:flutter_proyect/utils/add_types_form.dart';
 import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/db_updates.dart';
@@ -38,21 +38,13 @@ class _TableViewState extends State<TableView> {
   int _selectedType = 99;
   String priceText = "";
   Map<String, dynamic> _editedProduct = {};
-  late String printAddress;
   @override
   void initState() {
     super.initState();
     getLines();
     getProductTypes();
     getProducts();
-    setState(() {
-      printAddress = config.Config.selectedPrinter;
-      selectedPrinter = BluetoothPrinter(
-        address: config.Config.selectedPrinter,
-        typePrinter: PrinterType.bluetooth,
-        deviceName: "Unknown",
-      );
-    });
+    setState(() {});
   }
 
   @override
@@ -434,89 +426,13 @@ class _TableViewState extends State<TableView> {
       Navigator.of(context).pop();
     }
   }
+
   // *** Print Related ***
+  Future onPrintReceive() async {
+    await printReceive(orderLines, widget.mesa);
+  }
 
   // Printer Type [bluetooth, usb, network]
-  var defaultPrinterType = PrinterType.bluetooth;
-  var _reconnect = false;
-  var printerManager = PrinterManager.instance;
-  var devices = <BluetoothPrinter>[];
-  BTStatus _currentStatus = BTStatus.none;
-  USBStatus _currentUsbStatus = USBStatus.none;
-  List<int>? pendingTask;
-  BluetoothPrinter? selectedPrinter;
-
-  Future onPrintReceive() async {
-    List<int> bytes = [];
-
-    // Xprinter XP-N160I
-    final profile = await CapabilityProfile.load(name: 'XP-N160I');
-    // PaperSize.mm80 or PaperSize.mm58
-    final generator = Generator(PaperSize.mm80, profile);
-    bytes += generator.setGlobalCodeTable('CP1252');
-    bytes += generator.text(
-      'Test Print',
-      styles: const PosStyles(align: PosAlign.center),
-    );
-    bytes += generator.text('Product 1');
-    bytes += generator.text('Product 2');
-
-    _printEscPos(bytes, generator);
-  }
-
-  void _printEscPos(List<int> bytes, Generator generator) async {
-      print("here");
-    if (selectedPrinter == null) return;
-    var bluetoothPrinter = selectedPrinter!;
-
-    switch (bluetoothPrinter.typePrinter) {
-      case PrinterType.usb:
-        bytes += generator.feed(2);
-        bytes += generator.cut();
-        await printerManager.connect(
-          type: bluetoothPrinter.typePrinter,
-          model: UsbPrinterInput(
-            name: bluetoothPrinter.deviceName,
-            productId: bluetoothPrinter.productId,
-            vendorId: bluetoothPrinter.vendorId,
-          ),
-        );
-        pendingTask = null;
-        break;
-      case PrinterType.bluetooth:
-        bytes += generator.cut();
-        await printerManager.connect(
-          type: bluetoothPrinter.typePrinter,
-          model: BluetoothPrinterInput(
-            name: bluetoothPrinter.deviceName,
-            address: bluetoothPrinter.address!,
-            isBle: bluetoothPrinter.isBle ?? false,
-            autoConnect: _reconnect,
-          ),
-        );
-        pendingTask = null;
-        if (Platform.isAndroid) pendingTask = bytes;
-        break;
-      case PrinterType.network:
-        bytes += generator.feed(2);
-        bytes += generator.cut();
-        await printerManager.connect(
-          type: bluetoothPrinter.typePrinter,
-          model: TcpPrinterInput(ipAddress: bluetoothPrinter.address!),
-        );
-        break;
-      default:
-    }
-    if (bluetoothPrinter.typePrinter == PrinterType.bluetooth &&
-        Platform.isAndroid) {
-      if (printAddress != "") {
-        printerManager.send(type: bluetoothPrinter.typePrinter, bytes: bytes);
-        pendingTask = null;
-      }
-    } else {
-      printerManager.send(type: bluetoothPrinter.typePrinter, bytes: bytes);
-    }
-  }
   // *******************************
 
   @override
@@ -592,28 +508,4 @@ class _TableViewState extends State<TableView> {
       ),
     );
   }
-}
-
-class BluetoothPrinter {
-  int? id;
-  String? deviceName;
-  String? address;
-  String? port;
-  String? vendorId;
-  String? productId;
-  bool? isBle;
-
-  PrinterType typePrinter;
-  bool? state;
-
-  BluetoothPrinter({
-    this.deviceName,
-    this.address,
-    this.port,
-    this.state,
-    this.vendorId,
-    this.productId,
-    this.typePrinter = PrinterType.bluetooth,
-    this.isBle = false,
-  });
 }

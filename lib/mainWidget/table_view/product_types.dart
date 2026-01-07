@@ -33,7 +33,7 @@ class ProductTypes extends StatelessWidget {
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {Navigator.pop(context);},
                     child: Text(
-                      "Salir?",
+                      "Salir",
                       style: Theme.of(context).textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
