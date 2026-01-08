@@ -67,10 +67,12 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
     ),
   ]);
   // Resto de filas
-  final profiles = await CapabilityProfile.getAvailableProfiles();
-  print(profiles);
+  double suma = 0;
   for (var orderLine in orderLines) {
-    var priceText = Uint8List.fromList('${orderLine.totalPrice}'.codeUnits + [128]);
+    suma += orderLine.totalPrice;
+    var priceText = Uint8List.fromList(
+      '${orderLine.totalPrice}'.codeUnits + [128],
+    );
     bytes += generator.row([
       PosColumn(
         text: '${orderLine.quantity}x',
@@ -84,15 +86,17 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
         styles: PosStyles(align: PosAlign.left),
       ),
       PosColumn(
-      textEncoded: priceText,
+        textEncoded: priceText,
         width: 3,
         styles: PosStyles(align: PosAlign.right),
       ),
     ]);
   }
   bytes += generator.emptyLines(2);
-  bytes += generator.text(
-    'Text size 200%',
+
+  var totalPrice = Uint8List.fromList('TOTAL: $suma'.codeUnits + [128]);
+  bytes += generator.textEncoded(
+    totalPrice,
     styles: PosStyles(
       height: PosTextSize.size2,
       width: PosTextSize.size2,
@@ -100,7 +104,7 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
     ),
   );
 
-  void _printEscPos(List<int> bytes, Generator generator) async {
+  void printEscPos(List<int> bytes, Generator generator) async {
     if (selectedPrinter == null) return;
     var bluetoothPrinter = selectedPrinter!;
 
@@ -153,7 +157,7 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
     }
   }
 
-  _printEscPos(bytes, generator);
+  printEscPos(bytes, generator);
 }
 
 class BluetoothPrinter {

@@ -36,14 +36,30 @@ class Products extends StatelessWidget {
                       margin: EdgeInsets.all(5),
                       child: ElevatedButton(
                         style: ProyectStyles.buttonStyles(context),
-                        onPressed: () {onTapProduct(index);},
+                        onPressed: () {
+                          onTapProduct(index);
+                        },
                         onLongPress: () {
                           onEditProduct(index);
                         },
-                        child: Text(
-                          index.name,
-                          style: Theme.of(context).textTheme.titleSmall,
-                          textAlign: TextAlign.center,
+                        child: Stack(
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                index.name,
+                                style: Theme.of(context).textTheme.titleSmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                index.price.toString(),
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );

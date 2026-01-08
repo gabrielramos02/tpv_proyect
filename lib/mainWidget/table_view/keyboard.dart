@@ -52,41 +52,43 @@ class _KeyboardState extends State<Keyboard> {
         decoration: BoxDecoration(border: BoxBorder.all(color: Colors.black)),
         child: Column(
           children: [
-            Container(
-              color: Theme.of(context).primaryColor,
-              padding: EdgeInsets.all(8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                spacing: 3,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.only(right: 4),
-                        child: Text(
-                          "Precio Libre",
-                          style: Theme.of(context).primaryTextTheme.titleMedium,
-                        ),
-                      ),
-                      Container(
-                        color: Colors.white70,
-                        child: SizedBox(
-                          width: 150,
-                          child: TextField(
-                            controller: inputController,
-                            style: TextStyle(fontSize: 18),
-                            textAlign: TextAlign.end,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^[0-9+*/.-]*$'),
-                              ),
-                            ],
+            GestureDetector(
+              child: Container(
+                color: Theme.of(context).primaryColor,
+                padding: EdgeInsets.all(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: 3,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.only(right: 4),
+                          child: Text(
+                            "Precio Libre",
+                            style: Theme.of(context).primaryTextTheme.titleMedium,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Container(
+                          color: Colors.white70,
+                          child: SizedBox(
+                            width: 150,
+                            child: TextField(
+                              controller: inputController,
+                              style: TextStyle(fontSize: 18),
+                              textAlign: TextAlign.end,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'^[0-9+*/.-]*$'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             Expanded(

@@ -31,7 +31,9 @@ class ProductTypes extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {Navigator.pop(context);},
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                     child: Text(
                       "Salir",
                       style: Theme.of(context).textTheme.titleLarge,
@@ -42,49 +44,56 @@ class ProductTypes extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 6,
-                children: [
-                  ...productTypesList.map((index) {
-                    return Container(
+              child: GestureDetector(
+                onTap: () {
+                  onSelectType(99);
+                },
+                child: GridView.count(
+                  crossAxisCount: 6,
+                  children: [
+                    ...productTypesList.map((index) {
+                      return Container(
+                        margin: EdgeInsets.all(5),
+                        child: ElevatedButton(
+                          style: ProyectStyles.buttonStyles(context),
+                          onPressed: () {
+                            onSelectType(index.id);
+                          },
+                          onLongPress: () {
+                            onEditType(index);
+                          },
+                          child: Text(
+                            index.name,
+                            style: Theme.of(context).textTheme.titleSmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }),
+                    Container(
                       margin: EdgeInsets.all(5),
                       child: ElevatedButton(
-                        style: ProyectStyles.buttonStyles(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColorLight,
+                          alignment: AlignmentGeometry.center,
+                          side: BorderSide(color: Colors.black),
+                          padding: EdgeInsets.all(8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                        ),
                         onPressed: () {
-                          onSelectType(index.id);
-                        },
-                        onLongPress: () {
-                          onEditType(index);
+                          onAddType();
                         },
                         child: Text(
-                          index.name,
-                          style: Theme.of(context).textTheme.titleSmall,
+                          "+",
+                          style: Theme.of(context).textTheme.titleLarge,
                           textAlign: TextAlign.center,
                         ),
                       ),
-                    );
-                  }),
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColorLight,
-                        alignment: AlignmentGeometry.center,
-                        side: BorderSide(color: Colors.black),
-                        padding: EdgeInsets.all(8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(1),
-                        ),
-                      ),
-                      onPressed: () {onAddType();},
-                      child: Text(
-                        "+",
-                        style: Theme.of(context).textTheme.titleLarge,
-                        textAlign: TextAlign.center,
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

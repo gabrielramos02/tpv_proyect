@@ -427,6 +427,7 @@ class _TableViewState extends State<TableView> {
     }
   }
 
+
   // *** Print Related ***
   Future onPrintReceive() async {
     await printReceive(orderLines, widget.mesa);
@@ -445,7 +446,7 @@ class _TableViewState extends State<TableView> {
             Flexible(
               child: Column(
                 children: [
-                  Flexible(
+                  Expanded(
                     child: ProductList(
                       items: orderLines,
                       onSelectProduct: onEditProductList,
@@ -479,14 +480,17 @@ class _TableViewState extends State<TableView> {
                             onAddType: onAddProductType,
                           ),
                         ),
-                        Flexible(
-                          child: Products(
-                            productsList: products
-                                .where((e) => e.type == _selectedType)
-                                .toList(),
-                            onEditProduct: onEditProduct,
-                            onAddProduct: onAddProduct,
-                            onTapProduct: onTapProduct,
+                        Visibility(
+                          visible: _selectedType != 99,
+                          child: Flexible(
+                            child: Products(
+                              productsList: products
+                                  .where((e) => e.type == _selectedType)
+                                  .toList(),
+                              onEditProduct: onEditProduct,
+                              onAddProduct: onAddProduct,
+                              onTapProduct: onTapProduct,
+                            ),
                           ),
                         ),
                       ],
