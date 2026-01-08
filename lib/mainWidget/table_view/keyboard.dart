@@ -4,8 +4,6 @@ import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/utils/calculate_from_expression.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
-TextEditingController inputController = TextEditingController(text: "");
-
 class Keyboard extends StatefulWidget {
   const Keyboard({
     super.key,
@@ -28,11 +26,18 @@ class Keyboard extends StatefulWidget {
 }
 
 class _KeyboardState extends State<Keyboard> {
+  TextEditingController inputController = TextEditingController(text: "");
   @override
   void initState() {
     super.initState();
     inputController.text = "";
     inputController.addListener(onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    inputController.dispose();
   }
 
   void onTextChanged() {
@@ -141,7 +146,7 @@ class _KeyboardState extends State<Keyboard> {
                                   child: ElevatedButton(
                                     style: ProyectStyles.buttonStyles(context),
                                     onPressed: () {
-                                        widget.onPrintReceive();
+                                      widget.onPrintReceive();
                                     },
                                     child: Text(
                                       "Factura",
@@ -209,26 +214,10 @@ class _KeyboardState extends State<Keyboard> {
                                 child: _buildButtonText(context, "Buscar"),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "/"),
+                                child: _buildButtonKeyboard(context, "/",inputController),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "*"),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: _buildButtonKeyboard(context, "7"),
-                              ),
-                              Expanded(
-                                child: _buildButtonKeyboard(context, "8"),
-                              ),
-                              Expanded(
-                                child: _buildButtonKeyboard(context, "9"),
+                                child: _buildButtonKeyboard(context, "*",inputController),
                               ),
                             ],
                           ),
@@ -238,13 +227,13 @@ class _KeyboardState extends State<Keyboard> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(
-                                child: _buildButtonKeyboard(context, "4"),
+                                child: _buildButtonKeyboard(context, "7",inputController),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "5"),
+                                child: _buildButtonKeyboard(context, "8",inputController),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "6"),
+                                child: _buildButtonKeyboard(context, "9",inputController),
                               ),
                             ],
                           ),
@@ -254,13 +243,29 @@ class _KeyboardState extends State<Keyboard> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(
-                                child: _buildButtonKeyboard(context, "1"),
+                                child: _buildButtonKeyboard(context, "4",inputController),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "2"),
+                                child: _buildButtonKeyboard(context, "5",inputController),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "3"),
+                                child: _buildButtonKeyboard(context, "6",inputController),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: _buildButtonKeyboard(context, "1",inputController),
+                              ),
+                              Expanded(
+                                child: _buildButtonKeyboard(context, "2",inputController),
+                              ),
+                              Expanded(
+                                child: _buildButtonKeyboard(context, "3",inputController),
                               ),
                             ],
                           ),
@@ -288,10 +293,10 @@ class _KeyboardState extends State<Keyboard> {
                                 ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "0"),
+                                child: _buildButtonKeyboard(context, "0",inputController),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "."),
+                                child: _buildButtonKeyboard(context, ".",inputController),
                               ),
                             ],
                           ),
@@ -328,11 +333,11 @@ class _KeyboardState extends State<Keyboard> {
                         ),
                         Expanded(
                           flex: 1,
-                          child: _buildButtonKeyboard(context, "-"),
+                          child: _buildButtonKeyboard(context, "-",inputController),
                         ),
                         Expanded(
                           flex: 1,
-                          child: _buildButtonKeyboard(context, "+"),
+                          child: _buildButtonKeyboard(context, "+",inputController),
                         ),
                         Expanded(
                           flex: 2,
@@ -379,7 +384,11 @@ class _KeyboardState extends State<Keyboard> {
   }
 }
 
-Widget _buildButtonKeyboard(BuildContext context, String label) {
+Widget _buildButtonKeyboard(
+  BuildContext context,
+  String label,
+  TextEditingController inputController,
+) {
   return Container(
     padding: EdgeInsets.all(2),
     child: ElevatedButton(
