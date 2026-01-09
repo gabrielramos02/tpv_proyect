@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Config {
@@ -7,11 +10,19 @@ class Config {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  static String get selectedPrinter {
-    return _prefs.getString('printer_address') ?? '';
+
+  static BluetoothPrinter? get selectedPrinter {
+      print("estamo aqui");
+    final String? jsonString = _prefs.getString('selectedPrinter');
+    if (jsonString != null) {
+      final Map<String, dynamic> jsonMap = json.decode(jsonString);
+      return BluetoothPrinter.fromJson(jsonMap);
+    }
+    return null;
   }
 
-  static Future<void> setPrinterAddress(String address) async {
-    await _prefs.setString('printer_address', address);
+  static Future<void> setPrinter(BluetoothPrinter printer) async {
+      print("estamo aqui");
+    await _prefs.setString('selectedPrinter', json.encode(printer.toJson()));
   }
 }

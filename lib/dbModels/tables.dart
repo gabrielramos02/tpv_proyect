@@ -59,3 +59,8 @@ class Payments extends Table {
   DateTimeColumn get paymentDateTime => dateTime().nullable()();
   IntColumn get order => integer().references(Orders, #id)();
 }
+class Tickets extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  RealColumn get totalPrice => real()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+    }

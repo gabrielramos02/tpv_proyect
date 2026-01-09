@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter_proyect/dbModels/dbConnection.steps.dart';
 import 'package:flutter_proyect/dbModels/tables.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -14,6 +15,7 @@ part 'dbConnection.g.dart';
     Orders,
     OrderLines,
     Payments,
+    Tickets
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -23,7 +25,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
@@ -31,23 +33,14 @@ class AppDatabase extends _$AppDatabase {
     },
     beforeOpen: (details) async {
       if (details.wasCreated) {
-        // Inserta datos iniciales solo si la DB fue creada
         await into(
           taxes,
         ).insert(TaxesCompanion.insert(name: "Normal", rate: 0.2));
       }
     },
-    onUpgrade: (m, from, to) async {
-
-  //    await transaction(
-  //      () => VersionedSchema.runMigrationSteps(
-  //        migrator: m,
-  //        from: from,
-  //        to: to,
-  //        steps: _upgrade,
-  //      ),
-  //    );
-    },
+    onUpgrade: stepByStep(from1To2: (m,schema)async {
+            await m.createTable(schema.tickets);
+        })
   );
 
   static QueryExecutor _openConnection() {
@@ -63,7 +56,6 @@ class AppDatabase extends _$AppDatabase {
   }
 
   //static final _upgrade = migrationSteps(
-
 
   //);
 }

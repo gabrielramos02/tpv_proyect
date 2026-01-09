@@ -1,9 +1,15 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:drift/drift.dart';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/config.dart' as config;
+import 'package:flutter_proyect/main.dart';
+
+String GOODBYE_MSG = "GRACIAS POR SU VISITA";
+String INFO_MSG =
+    "AVDA ROURES 8A \n 08755 CASTELBISBAL(BCN) \n SAMUEL PACHECO NIE.X00000000";
 
 Future printReceive(List<OrderLine> orderLines, RestTable table) async {
   var reconnect = false;
@@ -11,11 +17,7 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
   List<int>? pendingTask;
   BluetoothPrinter? selectedPrinter;
   List<int> bytes = [];
-  selectedPrinter = BluetoothPrinter(
-    address: config.Config.selectedPrinter,
-    typePrinter: PrinterType.bluetooth,
-    deviceName: "Unknown",
-  );
+  selectedPrinter = config.Config.selectedPrinter ;
 
   final profile = await CapabilityProfile.load();
   // PaperSize.mm80 or PaperSize.mm58
@@ -37,6 +39,14 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
       align: PosAlign.center,
       height: PosTextSize.size3,
       width: PosTextSize.size3,
+    ),
+  );
+  bytes += generator.text(
+    INFO_MSG,
+    styles: PosStyles(
+      height: PosTextSize.size1,
+      width: PosTextSize.size1,
+      align: PosAlign.center,
     ),
   );
   bytes += generator.text('-' * 48);
@@ -103,6 +113,66 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
       align: PosAlign.right,
     ),
   );
+  bytes += generator.emptyLines(1);
+  Ticket ticket = await database
+      .into(database.tickets)
+      .insertReturning(TicketsCompanion.insert(totalPrice: suma));
+  bytes += generator.text(
+    'FACTURA SIMPLIFICADA',
+    styles: PosStyles(
+      height: PosTextSize.size1,
+      width: PosTextSize.size1,
+      align: PosAlign.left,
+    ),
+  );
+
+  bytes += generator.row([
+    PosColumn(
+      text: 'N°${ticket.id.toString().padLeft(8, '0')}',
+      width: 5,
+      styles: PosStyles(align: PosAlign.left, underline: false),
+    ),
+    PosColumn(
+      text: '${ticket.createdAt}',
+      width: 7,
+      styles: PosStyles(align: PosAlign.left, underline: false),
+    ),
+  ]);
+  bytes += generator.text(
+    'IVA. INCLUIDO',
+    styles: PosStyles(
+      height: PosTextSize.size1,
+      width: PosTextSize.size1,
+      align: PosAlign.left,
+    ),
+  );
+  bytes += generator.row([
+    PosColumn(
+      text: (suma / 1.10).toStringAsFixed(2),
+      width: 2,
+      styles: PosStyles(align: PosAlign.center, underline: false),
+    ),
+    PosColumn(
+      text: '10,00%',
+      width: 3,
+      styles: PosStyles(align: PosAlign.center, underline: false),
+    ),
+    PosColumn(
+      text: (suma - suma / 1.10).toStringAsFixed(2),
+      width: 7,
+      styles: PosStyles(align: PosAlign.left, underline: false),
+    ),
+  ]);
+  bytes += generator.text('-' * 48);
+  bytes += generator.text(
+    GOODBYE_MSG,
+    styles: PosStyles(
+      height: PosTextSize.size1,
+      width: PosTextSize.size1,
+      align: PosAlign.center,
+    ),
+  );
+  bytes += generator.emptyLines(2);
 
   void printEscPos(List<int> bytes, Generator generator) async {
     if (selectedPrinter == null) return;
@@ -149,7 +219,17 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
     if (bluetoothPrinter.typePrinter == PrinterType.bluetooth &&
         Platform.isAndroid) {
       if (selectedPrinter.address != "") {
-        printerManager.send(type: bluetoothPrinter.typePrinter, bytes: bytes);
+        bool sucessfullPrint = await printerManager.send(
+          type: bluetoothPrinter.typePrinter,
+          bytes: bytes,
+        );
+        if (!sucessfullPrint) {
+          await (database.delete(
+            database.tickets,
+          )..whereSamePrimaryKey(ticket)).go();
+        }
+        print(sucessfullPrint);
+
         pendingTask = null;
       }
     } else {
@@ -158,28 +238,4 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
   }
 
   printEscPos(bytes, generator);
-}
-
-class BluetoothPrinter {
-  int? id;
-  String? deviceName;
-  String? address;
-  String? port;
-  String? vendorId;
-  String? productId;
-  bool? isBle;
-
-  PrinterType typePrinter;
-  bool? state;
-
-  BluetoothPrinter({
-    this.deviceName,
-    this.address,
-    this.port,
-    this.state,
-    this.vendorId,
-    this.productId,
-    this.typePrinter = PrinterType.bluetooth,
-    this.isBle = false,
-  });
 }

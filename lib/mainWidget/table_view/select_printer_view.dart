@@ -314,10 +314,11 @@ class _PrintConfigViewState extends State<PrintConfigView> {
                             onPressed: selectedPrinter == null || !_isConnected
                                 ? null
                                 : () {
-                                    if (selectedPrinter != null)
+                                    if (selectedPrinter != null) {
                                       printerManager.disconnect(
                                         type: selectedPrinter!.typePrinter,
                                       );
+                                    }
                                     setState(() {
                                       _isConnected = false;
                                     });
@@ -382,7 +383,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
                                     child: Text("${device.address}"),
                                   ),
                             onTap: () {
-                              Config.setPrinterAddress(device.address ?? "");
+                              Config.setPrinter(device);
                               selectDevice(device);
                             },
                             leading:
@@ -518,4 +519,28 @@ class BluetoothPrinter {
     this.typePrinter = PrinterType.bluetooth,
     this.isBle = false,
   });
+  Map<String, dynamic> toJson() => {
+    "deviceName": deviceName,
+    'address': address,
+    'port': port,
+    'state': state,
+    'vendorId': vendorId,
+    'productId': productId,
+    'isBle': isBle,
+    'typePrinter': typePrinter.toString(),
+  };
+  factory BluetoothPrinter.fromJson(Map<String, dynamic> json) {
+    PrinterType type = json['typePrinter'] == 'PrinterType.bluetooth'
+        ? PrinterType.bluetooth
+        : PrinterType.usb;
+    return BluetoothPrinter(
+      deviceName: json["deviceName"],
+      address: json['address'],
+      port: json['port'],
+      state: json['state'],
+      vendorId: json['vendorId'],
+      productId: json['productId'],
+      typePrinter: type,
+    );
+  }
 }

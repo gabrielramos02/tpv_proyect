@@ -2764,6 +2764,255 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
   }
 }
 
+class $TicketsTable extends Tickets with TableInfo<$TicketsTable, Ticket> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TicketsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _totalPriceMeta = const VerificationMeta(
+    'totalPrice',
+  );
+  @override
+  late final GeneratedColumn<double> totalPrice = GeneratedColumn<double>(
+    'total_price',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, totalPrice, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tickets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Ticket> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('total_price')) {
+      context.handle(
+        _totalPriceMeta,
+        totalPrice.isAcceptableOrUnknown(data['total_price']!, _totalPriceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_totalPriceMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Ticket map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Ticket(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      totalPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_price'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TicketsTable createAlias(String alias) {
+    return $TicketsTable(attachedDatabase, alias);
+  }
+}
+
+class Ticket extends DataClass implements Insertable<Ticket> {
+  final int id;
+  final double totalPrice;
+  final DateTime createdAt;
+  const Ticket({
+    required this.id,
+    required this.totalPrice,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['total_price'] = Variable<double>(totalPrice);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TicketsCompanion toCompanion(bool nullToAbsent) {
+    return TicketsCompanion(
+      id: Value(id),
+      totalPrice: Value(totalPrice),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Ticket.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Ticket(
+      id: serializer.fromJson<int>(json['id']),
+      totalPrice: serializer.fromJson<double>(json['totalPrice']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'totalPrice': serializer.toJson<double>(totalPrice),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Ticket copyWith({int? id, double? totalPrice, DateTime? createdAt}) => Ticket(
+    id: id ?? this.id,
+    totalPrice: totalPrice ?? this.totalPrice,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Ticket copyWithCompanion(TicketsCompanion data) {
+    return Ticket(
+      id: data.id.present ? data.id.value : this.id,
+      totalPrice: data.totalPrice.present
+          ? data.totalPrice.value
+          : this.totalPrice,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Ticket(')
+          ..write('id: $id, ')
+          ..write('totalPrice: $totalPrice, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, totalPrice, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Ticket &&
+          other.id == this.id &&
+          other.totalPrice == this.totalPrice &&
+          other.createdAt == this.createdAt);
+}
+
+class TicketsCompanion extends UpdateCompanion<Ticket> {
+  final Value<int> id;
+  final Value<double> totalPrice;
+  final Value<DateTime> createdAt;
+  const TicketsCompanion({
+    this.id = const Value.absent(),
+    this.totalPrice = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  TicketsCompanion.insert({
+    this.id = const Value.absent(),
+    required double totalPrice,
+    this.createdAt = const Value.absent(),
+  }) : totalPrice = Value(totalPrice);
+  static Insertable<Ticket> custom({
+    Expression<int>? id,
+    Expression<double>? totalPrice,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (totalPrice != null) 'total_price': totalPrice,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  TicketsCompanion copyWith({
+    Value<int>? id,
+    Value<double>? totalPrice,
+    Value<DateTime>? createdAt,
+  }) {
+    return TicketsCompanion(
+      id: id ?? this.id,
+      totalPrice: totalPrice ?? this.totalPrice,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (totalPrice.present) {
+      map['total_price'] = Variable<double>(totalPrice.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TicketsCompanion(')
+          ..write('id: $id, ')
+          ..write('totalPrice: $totalPrice, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2775,6 +3024,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OrdersTable orders = $OrdersTable(this);
   late final $OrderLinesTable orderLines = $OrderLinesTable(this);
   late final $PaymentsTable payments = $PaymentsTable(this);
+  late final $TicketsTable tickets = $TicketsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2787,6 +3037,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     orders,
     orderLines,
     payments,
+    tickets,
   ];
 }
 
@@ -5346,6 +5597,158 @@ typedef $$PaymentsTableProcessedTableManager =
       Payment,
       PrefetchHooks Function({bool order})
     >;
+typedef $$TicketsTableCreateCompanionBuilder =
+    TicketsCompanion Function({
+      Value<int> id,
+      required double totalPrice,
+      Value<DateTime> createdAt,
+    });
+typedef $$TicketsTableUpdateCompanionBuilder =
+    TicketsCompanion Function({
+      Value<int> id,
+      Value<double> totalPrice,
+      Value<DateTime> createdAt,
+    });
+
+class $$TicketsTableFilterComposer
+    extends Composer<_$AppDatabase, $TicketsTable> {
+  $$TicketsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalPrice => $composableBuilder(
+    column: $table.totalPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TicketsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TicketsTable> {
+  $$TicketsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalPrice => $composableBuilder(
+    column: $table.totalPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TicketsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TicketsTable> {
+  $$TicketsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get totalPrice => $composableBuilder(
+    column: $table.totalPrice,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$TicketsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TicketsTable,
+          Ticket,
+          $$TicketsTableFilterComposer,
+          $$TicketsTableOrderingComposer,
+          $$TicketsTableAnnotationComposer,
+          $$TicketsTableCreateCompanionBuilder,
+          $$TicketsTableUpdateCompanionBuilder,
+          (Ticket, BaseReferences<_$AppDatabase, $TicketsTable, Ticket>),
+          Ticket,
+          PrefetchHooks Function()
+        > {
+  $$TicketsTableTableManager(_$AppDatabase db, $TicketsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TicketsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TicketsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TicketsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<double> totalPrice = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TicketsCompanion(
+                id: id,
+                totalPrice: totalPrice,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required double totalPrice,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TicketsCompanion.insert(
+                id: id,
+                totalPrice: totalPrice,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TicketsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TicketsTable,
+      Ticket,
+      $$TicketsTableFilterComposer,
+      $$TicketsTableOrderingComposer,
+      $$TicketsTableAnnotationComposer,
+      $$TicketsTableCreateCompanionBuilder,
+      $$TicketsTableUpdateCompanionBuilder,
+      (Ticket, BaseReferences<_$AppDatabase, $TicketsTable, Ticket>),
+      Ticket,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5364,4 +5767,6 @@ class $AppDatabaseManager {
       $$OrderLinesTableTableManager(_db, _db.orderLines);
   $$PaymentsTableTableManager get payments =>
       $$PaymentsTableTableManager(_db, _db.payments);
+  $$TicketsTableTableManager get tickets =>
+      $$TicketsTableTableManager(_db, _db.tickets);
 }
