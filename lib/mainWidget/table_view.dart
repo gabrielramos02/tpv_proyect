@@ -375,7 +375,7 @@ class _TableViewState extends State<TableView> {
     DbUpdates.updatedOrders(widget.mesa.id);
     final result = await showDialog(
       context: context,
-      builder: (context) => SplitTable(mesaID: widget.mesa.id),
+      builder: (context) => SplitTable(mesa: widget.mesa),
     );
     getLines();
     DbUpdates.updatedOrders(widget.mesa.id);
@@ -430,7 +430,7 @@ class _TableViewState extends State<TableView> {
 
   // *** Print Related ***
   Future onPrintReceive() async {
-    await printReceive(orderLines, widget.mesa);
+    await printReceive(orderLines, widget.mesa.number);
   }
 
   // Printer Type [bluetooth, usb, network]

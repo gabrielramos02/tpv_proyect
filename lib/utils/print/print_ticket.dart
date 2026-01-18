@@ -7,7 +7,7 @@ import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/config.dart' as config;
 import 'package:flutter_proyect/main.dart';
 
-Future printReceive(List<OrderLine> orderLines, RestTable table) async {
+Future printReceive(List<OrderLine> orderLines, String number) async {
   var reconnect = false;
   var printerManager = PrinterManager.instance;
   List<int>? pendingTask;
@@ -49,7 +49,7 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
   );
   bytes += generator.text('-' * 48);
   bytes += generator.text(
-    'Mesa:${table.number}',
+    'Mesa:$number',
     styles: PosStyles(
       height: PosTextSize.size2,
       width: PosTextSize.size2,

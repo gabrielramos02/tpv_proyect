@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/db_updates.dart';
+import 'package:flutter_proyect/utils/print/print_ticket.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 import '../main.dart';
 
 class SplitTable extends StatefulWidget {
-  const SplitTable({super.key, required this.mesaID});
-  final int mesaID;
+  const SplitTable({super.key, required this.mesa});
+  final RestTable mesa;
 
   @override
   State<SplitTable> createState() => _SplitTableState();
@@ -68,7 +69,7 @@ class _SplitTableState extends State<SplitTable> {
                 database.orders.id.equalsExp(database.orderLines.order),
               ),
             ])..where(
-              database.orders.restTable.equals(widget.mesaID) &
+              database.orders.restTable.equals(widget.mesa.id) &
                   database.orders.closedAt.isNull(),
             ))
             .get();
@@ -206,7 +207,7 @@ class _SplitTableState extends State<SplitTable> {
 
   void onCheckout() async {
     DbUpdates.updatedOrders(99);
-    DbUpdates.updatedOrders(widget.mesaID);
+    DbUpdates.updatedOrders(widget.mesa.id);
     final List<Order> result = await showDialog(
       context: context,
       builder: (context) => Checkout(mesaID: 99),
@@ -214,11 +215,18 @@ class _SplitTableState extends State<SplitTable> {
     getRightLines();
     getLeftLines();
     DbUpdates.updatedOrders(99);
-    DbUpdates.updatedOrders(widget.mesaID);
+    DbUpdates.updatedOrders(widget.mesa.id);
     if (result.isEmpty) {
       Navigator.of(context).pop();
     }
   }
+
+  Future onPrintReceive() async {
+    if (rightList.isNotEmpty) {
+      await printReceive(rightList, widget.mesa.number);
+    }
+  }
+
   void onShowSnackBar() {
     final snackBar = SnackBar(
       content: Text(
@@ -227,7 +235,6 @@ class _SplitTableState extends State<SplitTable> {
       ),
       duration: Duration(seconds: 5),
       backgroundColor: Colors.red,
-
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -243,7 +250,7 @@ class _SplitTableState extends State<SplitTable> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    backgroundColor: Colors.transparent,
+      backgroundColor: Colors.transparent,
       body: AlertDialog(
         title: Text('Separar Mesa', textAlign: TextAlign.center),
         content: SizedBox(
@@ -558,7 +565,7 @@ class _SplitTableState extends State<SplitTable> {
                                 }),
                               ],
                             ),
-      
+
                             Container(
                               color: Theme.of(context).primaryColor,
                               padding: EdgeInsets.all(8),
@@ -600,6 +607,20 @@ class _SplitTableState extends State<SplitTable> {
                             child: ElevatedButton(
                               style: ProyectStyles.buttonStyles(context),
                               onPressed: () {
+                                onPrintReceive();
+                              },
+                              child: Text(
+                                "Factura",
+                                style: Theme.of(context).textTheme.titleLarge,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 10),
+                            child: ElevatedButton(
+                              style: ProyectStyles.buttonStyles(context),
+                              onPressed: () {
                                 onCheckout();
                               },
                               child: Text(
@@ -623,10 +644,9 @@ class _SplitTableState extends State<SplitTable> {
             onPressed: () {
               if (rightList.isEmpty) {
                 Navigator.of(context).pop();
-              }else{
-                  onShowSnackBar();
-                      
-                  }
+              } else {
+                onShowSnackBar();
+              }
             },
             child: const Text('OK'),
           ),
