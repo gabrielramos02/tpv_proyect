@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/mainWidget/config_view.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
 import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/new_table_form.dart';
@@ -122,7 +123,7 @@ class _ZoneViewState extends State<ZoneView> {
   void onPrintConfig() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => PrintConfigView()),
+      MaterialPageRoute(builder: (context) => ConfigView()),
     );
     getTables();
   }

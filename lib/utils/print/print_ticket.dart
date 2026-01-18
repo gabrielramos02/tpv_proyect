@@ -7,17 +7,15 @@ import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/config.dart' as config;
 import 'package:flutter_proyect/main.dart';
 
-String GOODBYE_MSG = "GRACIAS POR SU VISITA";
-String INFO_MSG =
-    "AVDA ROURES 8A \n 08755 CASTELBISBAL(BCN) \n SAMUEL PACHECO NIE.X00000000";
-
 Future printReceive(List<OrderLine> orderLines, RestTable table) async {
   var reconnect = false;
   var printerManager = PrinterManager.instance;
   List<int>? pendingTask;
   BluetoothPrinter? selectedPrinter;
   List<int> bytes = [];
-  selectedPrinter = config.Config.selectedPrinter ;
+  selectedPrinter = config.Config.selectedPrinter;
+  String? GOODBYE_MSG = config.Config.goodbyeText?.toUpperCase();
+  String? INFO_MSG = config.Config.welcomeText?.toUpperCase();
 
   final profile = await CapabilityProfile.load();
   // PaperSize.mm80 or PaperSize.mm58
@@ -42,7 +40,7 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
     ),
   );
   bytes += generator.text(
-    INFO_MSG,
+    INFO_MSG ?? "",
     styles: PosStyles(
       height: PosTextSize.size1,
       width: PosTextSize.size1,
@@ -165,7 +163,7 @@ Future printReceive(List<OrderLine> orderLines, RestTable table) async {
   ]);
   bytes += generator.text('-' * 48);
   bytes += generator.text(
-    GOODBYE_MSG,
+    GOODBYE_MSG ?? "",
     styles: PosStyles(
       height: PosTextSize.size1,
       width: PosTextSize.size1,

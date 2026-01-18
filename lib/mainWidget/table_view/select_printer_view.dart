@@ -34,11 +34,15 @@ class _PrintConfigViewState extends State<PrintConfigView> {
   final _ipController = TextEditingController();
   final _portController = TextEditingController();
   BluetoothPrinter? selectedPrinter;
+  String? _mensajeDespedida = "";
+  String? _mensajeInicial = "";
 
   @override
   void initState() {
     if (Platform.isWindows) defaultPrinterType = PrinterType.usb;
     super.initState();
+    _mensajeInicial = Config.welcomeText;
+    _mensajeDespedida = Config.goodbyeText;
     _portController.text = _port;
     _scan();
 
@@ -68,6 +72,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
             pendingTask = null;
           });
         } else if (Platform.isIOS) {
+
           PrinterManager.instance.send(
             type: PrinterType.bluetooth,
             bytes: pendingTask!,
@@ -92,6 +97,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
         }
       }
     });
+    setState(() {});
   }
 
   @override
@@ -276,219 +282,324 @@ class _PrintConfigViewState extends State<PrintConfigView> {
     setState(() {});
   }
 
+  void editarMensaje() {
+    // Controlador para capturar el texto, iniciamos con el valor actual
+    TextEditingController controller = TextEditingController(
+      text: _mensajeDespedida,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Editar Despedida'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: "Escribe el nuevo mensaje",
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Config.setGoodbyeText(controller.text);
+                setState(() {
+                  _mensajeDespedida = controller.text;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void editarMensajeInicial() {
+    TextEditingController controller = TextEditingController(
+      text: _mensajeInicial,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Editar Mensaje Inicial'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: "Escribe el nuevo mensaje",
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Config.setWelcomeText(controller.text);
+                setState(() {
+                  _mensajeInicial = controller.text;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Flutter Pos Plugin Platform example app'),
-        ),
-        body: Center(
-          child: Container(
-            height: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: selectedPrinter == null || _isConnected
-                                ? null
-                                : () {
-                                    _connectDevice();
-                                  },
-                            child: const Text(
-                              "Connect",
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: selectedPrinter == null || !_isConnected
-                                ? null
-                                : () {
-                                    if (selectedPrinter != null) {
-                                      printerManager.disconnect(
-                                        type: selectedPrinter!.typePrinter,
-                                      );
-                                    }
-                                    setState(() {
-                                      _isConnected = false;
-                                    });
-                                  },
-                            child: const Text(
-                              "Disconnect",
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  DropdownButtonFormField<PrinterType>(
-                    value: defaultPrinterType,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.print, size: 24),
-                      labelText: "Type Printer Device",
-                      labelStyle: TextStyle(fontSize: 18.0),
-                      focusedBorder: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                    ),
-                    items: <DropdownMenuItem<PrinterType>>[
-                      const DropdownMenuItem(
-                        value: PrinterType.bluetooth,
-                        child: Text("bluetooth"),
-                      ),
-                      const DropdownMenuItem(
-                        value: PrinterType.usb,
-                        child: Text("usb"),
-                      ),
-                      const DropdownMenuItem(
-                        value: PrinterType.network,
-                        child: Text("Wifi"),
-                      ),
-                    ],
-                    onChanged: (PrinterType? value) {
-                      setState(() {
-                        if (value != null) {
-                          setState(() {
-                            defaultPrinterType = value;
-                            selectedPrinter = null;
-                            _isBle = false;
-                            _isConnected = false;
-                            _scan();
-                          });
-                        }
-                      });
-                    },
-                  ),
-                  Column(
-                    children: devices
-                        .map(
-                          (device) => ListTile(
-                            title: Text('${device.deviceName}'),
-                            subtitle:
-                                Platform.isAndroid &&
-                                    defaultPrinterType == PrinterType.usb
-                                ? null
-                                : Visibility(
-                                    visible: !Platform.isWindows,
-                                    child: Text("${device.address}"),
-                                  ),
-                            onTap: () {
-                              Config.setPrinter(device);
-                              selectDevice(device);
-                            },
-                            leading:
-                                selectedPrinter != null &&
-                                    ((device.typePrinter == PrinterType.usb &&
-                                                Platform.isWindows
-                                            ? device.deviceName ==
-                                                  selectedPrinter!.deviceName
-                                            : device.vendorId != null &&
-                                                  selectedPrinter!.vendorId ==
-                                                      device.vendorId) ||
-                                        (device.address != null &&
-                                            selectedPrinter!.address ==
-                                                device.address))
-                                ? const Icon(Icons.check, color: Colors.green)
-                                : null,
-                            trailing: OutlinedButton(
-                              onPressed:
-                                  selectedPrinter == null ||
-                                      device.deviceName !=
-                                          selectedPrinter?.deviceName
-                                  ? null
-                                  : () async {
-                                      _printReceiveTest();
-                                    },
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: 2,
-                                  horizontal: 20,
-                                ),
-                                child: Text(
-                                  "Print test ticket",
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  Visibility(
-                    visible:
-                        defaultPrinterType == PrinterType.network &&
-                        Platform.isWindows,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: TextFormField(
-                        controller: _ipController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          signed: true,
-                        ),
-                        decoration: const InputDecoration(
-                          label: Text("Ip Address"),
-                          prefixIcon: Icon(Icons.wifi, size: 24),
-                        ),
-                        onChanged: setIpAddress,
-                      ),
-                    ),
-                  ),
-                  Visibility(
-                    visible:
-                        defaultPrinterType == PrinterType.network &&
-                        Platform.isWindows,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: TextFormField(
-                        controller: _portController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          signed: true,
-                        ),
-                        decoration: const InputDecoration(
-                          label: Text("Port"),
-                          prefixIcon: Icon(Icons.numbers_outlined, size: 24),
-                        ),
-                        onChanged: setPort,
-                      ),
-                    ),
-                  ),
-                  Visibility(
-                    visible:
-                        defaultPrinterType == PrinterType.network &&
-                        Platform.isWindows,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: OutlinedButton(
-                        onPressed: () async {
-                          if (_ipController.text.isNotEmpty)
-                            setIpAddress(_ipController.text);
-                          _printReceiveTest();
-                        },
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 4,
-                            horizontal: 50,
-                          ),
-                          child: Text(
-                            "Print test ticket",
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AlertDialog(
+        content: Container(
+          height: double.infinity,
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: selectedPrinter == null || _isConnected
+                              ? null
+                              : () {
+                                  _connectDevice();
+                                },
+                          child: const Text(
+                            "Connect",
                             textAlign: TextAlign.center,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: selectedPrinter == null || !_isConnected
+                              ? null
+                              : () {
+                                  if (selectedPrinter != null) {
+                                    printerManager.disconnect(
+                                      type: selectedPrinter!.typePrinter,
+                                    );
+                                  }
+                                  setState(() {
+                                    _isConnected = false;
+                                  });
+                                },
+                          child: const Text(
+                            "Disconnect",
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            editarMensajeInicial();
+                          },
+                          child: const Text(
+                            "Editar Mensaje Inicial",
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            editarMensaje();
+                          },
+                          child: const Text(
+                            "Editar Mensaje Final",
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                DropdownButtonFormField<PrinterType>(
+                  value: defaultPrinterType,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.print, size: 24),
+                    labelText: "Type Printer Device",
+                    labelStyle: TextStyle(fontSize: 18.0),
+                    focusedBorder: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                  ),
+                  items: <DropdownMenuItem<PrinterType>>[
+                    const DropdownMenuItem(
+                      value: PrinterType.bluetooth,
+                      child: Text("bluetooth"),
+                    ),
+                    const DropdownMenuItem(
+                      value: PrinterType.usb,
+                      child: Text("usb"),
+                    ),
+                    const DropdownMenuItem(
+                      value: PrinterType.network,
+                      child: Text("Wifi"),
+                    ),
+                  ],
+                  onChanged: (PrinterType? value) {
+                    setState(() {
+                      if (value != null) {
+                        setState(() {
+                          defaultPrinterType = value;
+                          selectedPrinter = null;
+                          _isBle = false;
+                          _isConnected = false;
+                          _scan();
+                        });
+                      }
+                    });
+                  },
+                ),
+                Column(
+                  children: devices
+                      .map(
+                        (device) => ListTile(
+                          title: Text('${device.deviceName}'),
+                          subtitle:
+                              Platform.isAndroid &&
+                                  defaultPrinterType == PrinterType.usb
+                              ? null
+                              : Visibility(
+                                  visible: !Platform.isWindows,
+                                  child: Text("${device.address}"),
+                                ),
+                          onTap: () {
+                            Config.setPrinter(device);
+                            selectDevice(device);
+                          },
+                          leading:
+                              selectedPrinter != null &&
+                                  ((device.typePrinter == PrinterType.usb &&
+                                              Platform.isWindows
+                                          ? device.deviceName ==
+                                                selectedPrinter!.deviceName
+                                          : device.vendorId != null &&
+                                                selectedPrinter!.vendorId ==
+                                                    device.vendorId) ||
+                                      (device.address != null &&
+                                          selectedPrinter!.address ==
+                                              device.address))
+                              ? const Icon(Icons.check, color: Colors.green)
+                              : null,
+                          trailing: OutlinedButton(
+                            onPressed:
+                                selectedPrinter == null ||
+                                    device.deviceName !=
+                                        selectedPrinter?.deviceName
+                                ? null
+                                : () async {
+                                    _printReceiveTest();
+                                  },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 2,
+                                horizontal: 20,
+                              ),
+                              child: Text(
+                                "Print test ticket",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+                Visibility(
+                  visible:
+                      defaultPrinterType == PrinterType.network &&
+                      Platform.isWindows,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: TextFormField(
+                      controller: _ipController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        signed: true,
+                      ),
+                      decoration: const InputDecoration(
+                        label: Text("Ip Address"),
+                        prefixIcon: Icon(Icons.wifi, size: 24),
+                      ),
+                      onChanged: setIpAddress,
                     ),
                   ),
-                ],
-              ),
+                ),
+                Visibility(
+                  visible:
+                      defaultPrinterType == PrinterType.network &&
+                      Platform.isWindows,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: TextFormField(
+                      controller: _portController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        signed: true,
+                      ),
+                      decoration: const InputDecoration(
+                        label: Text("Port"),
+                        prefixIcon: Icon(Icons.numbers_outlined, size: 24),
+                      ),
+                      onChanged: setPort,
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible:
+                      defaultPrinterType == PrinterType.network &&
+                      Platform.isWindows,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        if (_ipController.text.isNotEmpty)
+                          setIpAddress(_ipController.text);
+                        _printReceiveTest();
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 50,
+                        ),
+                        child: Text(
+                          "Print test ticket",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

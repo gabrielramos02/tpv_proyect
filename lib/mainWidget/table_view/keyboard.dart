@@ -66,7 +66,9 @@ class _KeyboardState extends State<Keyboard> {
                           padding: EdgeInsets.only(right: 4),
                           child: Text(
                             "Precio Libre",
-                            style: Theme.of(context).primaryTextTheme.titleMedium,
+                            style: Theme.of(
+                              context,
+                            ).primaryTextTheme.titleMedium,
                           ),
                         ),
                         Container(
@@ -216,26 +218,18 @@ class _KeyboardState extends State<Keyboard> {
                                 child: _buildButtonText(context, "Buscar"),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "/",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "/",
+                                  inputController,
+                                ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "*",inputController),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: _buildButtonKeyboard(context, "7",inputController),
-                              ),
-                              Expanded(
-                                child: _buildButtonKeyboard(context, "8",inputController),
-                              ),
-                              Expanded(
-                                child: _buildButtonKeyboard(context, "9",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "*",
+                                  inputController,
+                                ),
                               ),
                             ],
                           ),
@@ -245,13 +239,25 @@ class _KeyboardState extends State<Keyboard> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(
-                                child: _buildButtonKeyboard(context, "4",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "7",
+                                  inputController,
+                                ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "5",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "8",
+                                  inputController,
+                                ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "6",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "9",
+                                  inputController,
+                                ),
                               ),
                             ],
                           ),
@@ -261,13 +267,53 @@ class _KeyboardState extends State<Keyboard> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(
-                                child: _buildButtonKeyboard(context, "1",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "4",
+                                  inputController,
+                                ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "2",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "5",
+                                  inputController,
+                                ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "3",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "6",
+                                  inputController,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "1",
+                                  inputController,
+                                ),
+                              ),
+                              Expanded(
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "2",
+                                  inputController,
+                                ),
+                              ),
+                              Expanded(
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "3",
+                                  inputController,
+                                ),
                               ),
                             ],
                           ),
@@ -295,10 +341,18 @@ class _KeyboardState extends State<Keyboard> {
                                 ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, "0",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  "0",
+                                  inputController,
+                                ),
                               ),
                               Expanded(
-                                child: _buildButtonKeyboard(context, ".",inputController),
+                                child: _buildButtonKeyboard(
+                                  context,
+                                  ".",
+                                  inputController,
+                                ),
                               ),
                             ],
                           ),
@@ -335,11 +389,19 @@ class _KeyboardState extends State<Keyboard> {
                         ),
                         Expanded(
                           flex: 1,
-                          child: _buildButtonKeyboard(context, "-",inputController),
+                          child: _buildButtonKeyboard(
+                            context,
+                            "-",
+                            inputController,
+                          ),
                         ),
                         Expanded(
                           flex: 1,
-                          child: _buildButtonKeyboard(context, "+",inputController),
+                          child: _buildButtonKeyboard(
+                            context,
+                            "+",
+                            inputController,
+                          ),
                         ),
                         Expanded(
                           flex: 2,
