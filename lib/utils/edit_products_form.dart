@@ -69,7 +69,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
                 labelStyle: Theme.of(context).textTheme.bodyLarge,
               ),
               onChanged: (text) {
-                response["price"] = text;
+                response["price"] = double.parse(text);
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -93,6 +93,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
               },
             ),
             DropdownButtonFormField(
+              initialValue:widget.product.taxes,
               isExpanded: true,
               hint: Text("Selecciona el tipo de taxes"),
               items: taxes.map((index) {

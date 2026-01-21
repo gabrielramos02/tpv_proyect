@@ -144,7 +144,6 @@ class _TableViewState extends State<TableView> {
       context: context,
       builder: (context) => EditProductsForm(product: product),
     );
-
     if (result[""] != "") {
       await database
           .update(database.productsClass)
