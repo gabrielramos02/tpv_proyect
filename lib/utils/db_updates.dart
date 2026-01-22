@@ -38,6 +38,7 @@ class DbUpdates {
           0,
           (prev, e) => prev + e.payedAmount,
         );
+        totalPayed = double.parse(totalPayed.toStringAsFixed(2));
 
         if (totalPayed >= totalPrice) {
           await (database.update(
