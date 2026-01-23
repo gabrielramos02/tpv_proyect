@@ -29,6 +29,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
       productTypes = response;
     });
   }
+
   Future<void> getTaxes() async {
     final response = await database.select(database.taxes).get();
     setState(() {
@@ -36,12 +37,15 @@ class _EditProductsFormState extends State<EditProductsForm> {
     });
   }
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       actionsAlignment: MainAxisAlignment.spaceBetween,
       title: Text(widget.product.name),
       content: Form(
+        key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -79,7 +83,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
               },
             ),
             DropdownButtonFormField(
-              initialValue:widget.product.type,
+              initialValue: widget.product.type,
               hint: Text("Selecciona la familia"),
               isExpanded: true,
               items: productTypes.map((index) {
@@ -93,7 +97,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
               },
             ),
             DropdownButtonFormField(
-              initialValue:widget.product.taxes,
+              initialValue: widget.product.taxes,
               isExpanded: true,
               hint: Text("Selecciona el tipo de taxes"),
               items: taxes.map((index) {
@@ -110,13 +114,15 @@ class _EditProductsFormState extends State<EditProductsForm> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop({"":""});
+            Navigator.of(context).pop({"": ""});
           },
           child: const Text('Eliminar'),
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(response);
+            if (_formKey.currentState!.validate()) {
+              Navigator.of(context).pop(response);
+            }
           },
           child: const Text('OK'),
         ),

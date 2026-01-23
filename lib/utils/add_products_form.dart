@@ -38,12 +38,14 @@ class _AddProductsFormState extends State<AddProductsForm> {
     });
   }
 
+  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       actionsAlignment: MainAxisAlignment.spaceBetween,
       title: Text('Producto'),
       content: Form(
+        key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -79,7 +81,7 @@ class _AddProductsFormState extends State<AddProductsForm> {
               },
             ),
             DropdownButtonFormField(
-              hint: Text("Selecciona la familia"),
+              hint: Text("Familia"),
               isExpanded: true,
               items: productTypes.map((index) {
                 return DropdownMenuItem(
@@ -89,6 +91,12 @@ class _AddProductsFormState extends State<AddProductsForm> {
               }).toList(),
               onChanged: (e) {
                 type = e;
+              },
+              validator: (value) {
+                if (value == null || value == 0) {
+                  return 'Selecciona la familia';
+                }
+                return null;
               },
             ),
             DropdownButtonFormField(
@@ -103,6 +111,12 @@ class _AddProductsFormState extends State<AddProductsForm> {
               onChanged: (e) {
                 taxRate = e;
               },
+              validator: (value) {
+                if (value == null || value == 0) {
+                  return 'Selecciona un tipo de impuesto';
+                }
+                return null;
+              },
             ),
           ],
         ),
@@ -116,16 +130,18 @@ class _AddProductsFormState extends State<AddProductsForm> {
         ),
         TextButton(
           onPressed: () {
-            final ProductsClassCompanion response =
-                ProductsClassCompanion.insert(
-                  name: name,
-                  price: double.parse(price),
-                  color: "",
-                  order: 0,
-                  type: type as int,
-                  taxes: taxRate as int,
-                );
-            Navigator.of(context).pop(response);
+            if (_formKey.currentState!.validate()) {
+              final ProductsClassCompanion response =
+                  ProductsClassCompanion.insert(
+                    name: name,
+                    price: double.parse(price),
+                    color: "",
+                    order: 0,
+                    type: type as int,
+                    taxes: taxRate as int,
+                  );
+              Navigator.of(context).pop(response);
+            }
           },
           child: const Text('OK'),
         ),
