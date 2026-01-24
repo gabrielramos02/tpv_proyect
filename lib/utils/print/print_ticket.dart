@@ -101,6 +101,8 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
     ]);
   }
   bytes += generator.emptyLines(2);
+  suma = double.parse(suma.toStringAsFixed(2));
+  print(suma);
 
   var totalPrice = Uint8List.fromList('TOTAL: $suma'.codeUnits + [128]);
   bytes += generator.textEncoded(
