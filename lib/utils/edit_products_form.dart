@@ -106,7 +106,9 @@ class _EditProductsFormState extends State<EditProductsForm> {
                   child: Text(index.name),
                 );
               }).toList(),
-              onChanged: (e) {},
+              onChanged: (e) {
+                response["taxes"] = e;
+              },
             ),
           ],
         ),
