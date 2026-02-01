@@ -78,8 +78,9 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
   double suma = 0;
   for (var orderLine in orderLines) {
     suma += orderLine.totalPrice;
+    String linePrice = orderLine.totalPrice.toStringAsFixed(2);
     var priceText = Uint8List.fromList(
-      '${orderLine.totalPrice}'.codeUnits + [128],
+      linePrice.codeUnits + [128],
     );
     bytes += generator.row([
       PosColumn(

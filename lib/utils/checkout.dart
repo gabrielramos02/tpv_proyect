@@ -233,7 +233,9 @@ class _CheckoutState extends State<Checkout> {
                                     child: Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        item.paymentDateTime.toString().substring(0,19),
+                                        item.paymentDateTime
+                                            .toString()
+                                            .substring(0, 19),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.labelLarge,
@@ -266,7 +268,9 @@ class _CheckoutState extends State<Checkout> {
                         child: SizedBox(
                           width: 150,
                           child: TextField(
+                            autofocus: true,
                             controller: inputControllerEfectivo,
+                            keyboardType: TextInputType.none,
                             style: TextStyle(fontSize: 18),
                             textAlign: TextAlign.end,
                             inputFormatters: [
@@ -300,6 +304,7 @@ class _CheckoutState extends State<Checkout> {
                           width: 150,
                           child: TextField(
                             controller: inputControllerVisa,
+                            keyboardType: TextInputType.none,
                             style: TextStyle(fontSize: 18),
                             textAlign: TextAlign.end,
                             inputFormatters: [
@@ -333,6 +338,7 @@ class _CheckoutState extends State<Checkout> {
                         child: SizedBox(
                           width: 150,
                           child: TextField(
+                            keyboardType: TextInputType.none,
                             controller: inputControllerOtros,
                             style: TextStyle(fontSize: 18),
                             textAlign: TextAlign.end,
@@ -489,12 +495,14 @@ class _CheckoutState extends State<Checkout> {
                                             Expanded(child: Container()),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "/",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "*",
                                               ),
@@ -509,18 +517,21 @@ class _CheckoutState extends State<Checkout> {
                                           children: [
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "7",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "8",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "9",
                                               ),
@@ -535,18 +546,21 @@ class _CheckoutState extends State<Checkout> {
                                           children: [
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "4",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "5",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "6",
                                               ),
@@ -561,18 +575,21 @@ class _CheckoutState extends State<Checkout> {
                                           children: [
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "1",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "2",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "3",
                                               ),
@@ -588,12 +605,14 @@ class _CheckoutState extends State<Checkout> {
                                             Expanded(child: Container()),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 "0",
                                               ),
                                             ),
                                             Expanded(
                                               child: _buildButtonKeyboard(
+                                                selected,
                                                 context,
                                                 ".",
                                               ),
@@ -624,9 +643,7 @@ class _CheckoutState extends State<Checkout> {
                                                   inputControllerEfectivo.text
                                                       .substring(
                                                         0,
-                                                        inputControllerEfectivo
-                                                                .text
-                                                                .length -
+                                                        selected.text.length -
                                                             1,
                                                       );
                                             },
@@ -642,6 +659,7 @@ class _CheckoutState extends State<Checkout> {
                                       Expanded(
                                         flex: 1,
                                         child: _buildButtonKeyboard(
+                                          selected,
                                           context,
                                           "-",
                                         ),
@@ -649,6 +667,7 @@ class _CheckoutState extends State<Checkout> {
                                       Expanded(
                                         flex: 1,
                                         child: _buildButtonKeyboard(
+                                          selected,
                                           context,
                                           "+",
                                         ),
@@ -721,13 +740,22 @@ class _CheckoutState extends State<Checkout> {
   }
 }
 
-Widget _buildButtonKeyboard(BuildContext context, String label) {
+Widget _buildButtonKeyboard(
+  TextEditingController controller,
+  BuildContext context,
+  String label,
+) {
   return Container(
     margin: EdgeInsets.all(4),
     child: ElevatedButton(
       style: ProyectStyles.buttonStyles(context),
       onPressed: () {
-        inputControllerEfectivo.text += label;
+        if (controller.selection.isValid) {
+          controller.clear();
+          controller.text += label;
+        } else {
+          controller.text += label;
+        }
       },
       child: Text(label, style: Theme.of(context).textTheme.titleLarge),
     ),
