@@ -38,6 +38,7 @@ class _TableViewState extends State<TableView> {
   int _selectedType = 99;
   String priceText = "";
   Map<String, dynamic> _editedProduct = {};
+  final GlobalKey<KeyboardState> keyboardKey = GlobalKey<KeyboardState>();
   @override
   void initState() {
     super.initState();
@@ -250,6 +251,7 @@ class _TableViewState extends State<TableView> {
       );
       await database.update(database.orderLines).replace(newProduct);
     }
+    keyboardKey.currentState?.onClearInput();
 
     await DbUpdates.updatedOrders(widget.mesa.id);
 
@@ -426,7 +428,6 @@ class _TableViewState extends State<TableView> {
     }
   }
 
-
   // *** Print Related ***
   Future onPrintReceive() async {
     await printReceive(orderLines, widget.mesa.number);
@@ -454,6 +455,7 @@ class _TableViewState extends State<TableView> {
                   ),
                   Flexible(
                     child: Keyboard(
+                      key: keyboardKey,
                       onChangePriceText: onChangePriceText,
                       onEnter: onTapProduct,
                       onCheckout: onCheckout,

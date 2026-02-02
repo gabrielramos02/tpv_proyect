@@ -22,10 +22,10 @@ class Keyboard extends StatefulWidget {
   final Future Function() onPrintReceive;
 
   @override
-  State<Keyboard> createState() => _KeyboardState();
+  State<Keyboard> createState() => KeyboardState();
 }
 
-class _KeyboardState extends State<Keyboard> {
+class KeyboardState extends State<Keyboard> {
   TextEditingController inputController = TextEditingController(text: "");
   @override
   void initState() {
@@ -39,6 +39,11 @@ class _KeyboardState extends State<Keyboard> {
     super.dispose();
     inputController.dispose();
   }
+  void onClearInput(){
+          setState(() {
+                      inputController.text = "";
+                    });
+      }
 
   void onTextChanged() {
     widget.onChangePriceText(inputController.text);

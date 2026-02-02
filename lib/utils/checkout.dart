@@ -56,6 +56,13 @@ class _CheckoutState extends State<Checkout> {
       paymentList = paymentsFromOrder;
     });
     inputControllerEfectivo.text = totalPrice.toString();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      inputControllerEfectivo.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: inputControllerEfectivo.text.length,
+      );
+    });
   }
 
   Future<void> getPayed() async {
@@ -269,6 +276,8 @@ class _CheckoutState extends State<Checkout> {
                           width: 150,
                           child: TextField(
                             autofocus: true,
+                            showCursor: true,
+                            readOnly: true,
                             controller: inputControllerEfectivo,
                             keyboardType: TextInputType.none,
                             style: TextStyle(fontSize: 18),
@@ -279,8 +288,13 @@ class _CheckoutState extends State<Checkout> {
                               ),
                             ],
                             onChanged: (text) {},
-                            onTap: () =>
-                                onSelected(inputControllerEfectivo, "Efectivo"),
+                            onTap: () {
+                              onSelected(inputControllerEfectivo, "Efectivo");
+                              selected.selection = TextSelection(
+                                baseOffset: 0,
+                                extentOffset: selected.text.length,
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -303,6 +317,8 @@ class _CheckoutState extends State<Checkout> {
                         child: SizedBox(
                           width: 150,
                           child: TextField(
+                            readOnly: true,
+                            showCursor: true,
                             controller: inputControllerVisa,
                             keyboardType: TextInputType.none,
                             style: TextStyle(fontSize: 18),
@@ -315,6 +331,10 @@ class _CheckoutState extends State<Checkout> {
                             onChanged: (text) {},
                             onTap: () {
                               onSelected(inputControllerVisa, "Visa");
+                              selected.selection = TextSelection(
+                                baseOffset: 0,
+                                extentOffset: selected.text.length,
+                              );
                             },
                           ),
                         ),
@@ -350,6 +370,10 @@ class _CheckoutState extends State<Checkout> {
                             onChanged: (text) {},
                             onTap: () {
                               onSelected(inputControllerOtros, "Otros");
+                              selected.selection = TextSelection(
+                                baseOffset: 0,
+                                extentOffset: selected.text.length,
+                              );
                             },
                           ),
                         ),
@@ -639,13 +663,11 @@ class _CheckoutState extends State<Checkout> {
                                               context,
                                             ),
                                             onPressed: () {
-                                              inputControllerEfectivo.text =
-                                                  inputControllerEfectivo.text
-                                                      .substring(
-                                                        0,
-                                                        selected.text.length -
-                                                            1,
-                                                      );
+                                              selected.text = selected.text
+                                                  .substring(
+                                                    0,
+                                                    selected.text.length - 1,
+                                                  );
                                             },
                                             child: Text(
                                               "<-",
@@ -750,7 +772,7 @@ Widget _buildButtonKeyboard(
     child: ElevatedButton(
       style: ProyectStyles.buttonStyles(context),
       onPressed: () {
-        if (controller.selection.isValid) {
+        if (!controller.selection.isCollapsed) {
           controller.clear();
           controller.text += label;
         } else {
