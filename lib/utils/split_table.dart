@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/mainWidget/table_view.dart';
 import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/db_updates.dart';
 import 'package:flutter_proyect/utils/print/print_ticket.dart';
@@ -78,7 +79,9 @@ class _SplitTableState extends State<SplitTable> {
         .toList();
     setState(() {
       leftList = result;
-      leftLineOrder = result[0].order;
+      if (result.isNotEmpty) {
+        leftLineOrder = result[0].order;
+      }
     });
   }
 
@@ -208,15 +211,22 @@ class _SplitTableState extends State<SplitTable> {
   void onCheckout() async {
     DbUpdates.updatedOrders(99);
     DbUpdates.updatedOrders(widget.mesa.id);
-    final List<Order> result = await showDialog(
+    RestTable mesa = RestTable(id: 99, state: 0, left: 0, top: 0, number: "0");
+    final result = await showDialog(
       context: context,
-      builder: (context) => Checkout(mesaID: 99),
+      builder: (context) => TableView(mesa: mesa),
     );
+    final Order response = await (database.select(
+      database.orders,
+    )..whereSamePrimaryKey(splitTableOrder)).getSingle();
+    if (response.closedAt != null) {
+      await newOrder();
+    }
     getRightLines();
     getLeftLines();
     DbUpdates.updatedOrders(99);
     DbUpdates.updatedOrders(widget.mesa.id);
-    if (result.isEmpty) {
+    if (leftList.isEmpty && rightList.isEmpty) {
       Navigator.of(context).pop();
     }
   }
