@@ -9,8 +9,7 @@ class DbUpdates {
               return e.restTable.isValue(tableID) & e.closedAt.isNull();
             }))
             .get();
-    if (ordersFromTable.isNotEmpty) {
-    }
+    if (ordersFromTable.isNotEmpty) {}
     int tableState = 0;
 
     for (var order in ordersFromTable) {
@@ -69,10 +68,12 @@ class DbUpdates {
         await (database.delete(
           database.orders,
         )..whereSamePrimaryKey(order)).go();
+        print("aqui,${order.id}");
       }
       await (database.update(database.restTables)
             ..where((e) => e.id.isValue(tableID)))
           .write(RestTablesCompanion(state: Value(tableState)));
+      print("ejecuted");
     }
 
     //**************************************************

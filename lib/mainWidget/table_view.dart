@@ -51,7 +51,6 @@ class _TableViewState extends State<TableView> {
   @override
   void dispose() {
     super.dispose();
-    DbUpdates.updatedOrders(widget.mesa.id);
   }
 
   // ***GETTERS***
@@ -373,13 +372,13 @@ class _TableViewState extends State<TableView> {
   }
 
   void onSplitTable() async {
-    DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(widget.mesa.id);
     final result = await showDialog(
       context: context,
       builder: (context) => SplitTable(mesa: widget.mesa),
     );
     getLines();
-    DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(widget.mesa.id);
   }
 
   void onDeleteTable() async {

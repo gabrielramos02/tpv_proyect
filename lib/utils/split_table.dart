@@ -57,6 +57,7 @@ class _SplitTableState extends State<SplitTable> {
             restTable: 99,
           ),
         );
+    print("createOrder,${newSplitTableOrder.id}");
     setState(() {
       splitTableOrder = newSplitTableOrder;
     });
@@ -209,13 +210,15 @@ class _SplitTableState extends State<SplitTable> {
   }
 
   void onCheckout() async {
-    DbUpdates.updatedOrders(99);
-    DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(99);
+    await DbUpdates.updatedOrders(widget.mesa.id);
     RestTable mesa = RestTable(id: 99, state: 0, left: 0, top: 0, number: "0");
     final result = await showDialog(
       context: context,
       builder: (context) => TableView(mesa: mesa),
     );
+    await DbUpdates.updatedOrders(99);
+    await DbUpdates.updatedOrders(widget.mesa.id);
     final Order response = await (database.select(
       database.orders,
     )..whereSamePrimaryKey(splitTableOrder)).getSingle();
@@ -224,8 +227,6 @@ class _SplitTableState extends State<SplitTable> {
     }
     getRightLines();
     getLeftLines();
-    DbUpdates.updatedOrders(99);
-    DbUpdates.updatedOrders(widget.mesa.id);
     if (leftList.isEmpty && rightList.isEmpty) {
       Navigator.of(context).pop();
     }
