@@ -170,7 +170,6 @@ class _SplitTableState extends State<SplitTable> {
         database.orderLines,
       )..whereSamePrimaryKey(pressed)).go();
     }
-
     //Changes on leftLine
     int indexLeftLine = leftList.indexWhere(
       (e) =>
