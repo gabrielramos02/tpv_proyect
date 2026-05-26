@@ -24,14 +24,11 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.x"
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: "temurin"
-          java-version: "17"
-
-      - name: Set JAVA_HOME
-        run: echo "JAVA_HOME=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
+          java-version: "21"
 
       - name: Get dependencies
         if: steps.check_commits.outputs.new_commits > 0
