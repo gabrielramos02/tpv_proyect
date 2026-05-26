@@ -67,16 +67,15 @@ jobs:
           git tag ${{ steps.release_tag.outputs.tag }}
           git push origin ${{ steps.release_tag.outputs.tag }}
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release in releases repo
         if: steps.check_commits.outputs.new_commits > 0
         uses: softprops/action-gh-release@v1
         with:
           files: build_output/*.apk
-          tag_name: nightly-$(date +%Y%m%d-%H%M)
-          name: Nightly Build $(date +%Y-%m-%d)
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: ${{ steps.release_tag.outputs.name }}
           body: Automated nightly build release
           draft: false
           prerelease: true
           repository: gabrielramos02/tpv_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN}}
+          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
