@@ -50,13 +50,16 @@ jobs:
             cp "$f" "build_output/${base}-$(date +%Y%m%d-%H%M).apk"
           done
 
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-
-          git clone https://${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/gabrielramos02/tpv_release.git releases
-          cp build_output/* releases/
-
-          cd releases
-          git add .
-          git commit -m "Release $(date +%Y-%m-%d)" || echo "No changes to commit"
-          git push
+      - name: Create GitHub Release
+        if: steps.check_commits.outputs.new_commits > 0
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build_output/*.apk
+          tag_name: nightly-$(date +%Y%m%d-%H%M)
+          name: Nightly Build $(date +%Y-%m-%d)
+          body: Automated nightly build release
+          draft: false
+          prerelease: true
+          repository: gabrielramos02/tpv_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN}}
