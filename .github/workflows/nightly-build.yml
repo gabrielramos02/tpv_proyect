@@ -2,8 +2,8 @@ name: Nightly Build & Release
 
 on:
   schedule:
-    - cron: '0 2 * * *'
-  workflow_dispatch: 
+    - cron: "0 2 * * *"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,8 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 
-      
+          fetch-depth: 0
+
       - name: Check for new commits
         id: check_commits
         run: |
@@ -23,25 +23,24 @@ jobs:
         if: steps.check_commits.outputs.new_commits > 0
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'-
+          flutter-version: "3.x"
       - name: Set up JDK 17
-          uses: actions/setup-java@v3
-          with:
-            distribution: 'temurin'
-            java-version: '17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Set JAVA_HOME
-          run: echo "JAVA_HOME=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
+        run: echo "JAVA_HOME=${JAVA_HOME_17_X64}" >> $GITHUB_ENV
 
-      
       - name: Get dependencies
         if: steps.check_commits.outputs.new_commits > 0
         run: flutter pub get
-      
+
       - name: Build release APK
         if: steps.check_commits.outputs.new_commits > 0
         run: flutter build apk --release --split-per-abi
-      
+
       - name: Upload to public repo
         if: steps.check_commits.outputs.new_commits > 0
         run: |
@@ -53,10 +52,10 @@ jobs:
 
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          
+
           git clone https://${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/gabrielramos02/tpv_release.git releases
           cp build_output/* releases/
-          
+
           cd releases
           git add .
           git commit -m "Release $(date +%Y-%m-%d)" || echo "No changes to commit"
