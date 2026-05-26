@@ -1,0 +1,54 @@
+name: Nightly Build & Release
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
+      
+      - name: Check for new commits
+        id: check_commits
+        run: |
+          LAST_BUILD=$(git describe --tags --abbrev=0 2>/dev/null || echo "1970-01-01")
+          COMMITS=$(git log --oneline --since="$LAST_BUILD" | wc -l)
+          echo "new_commits=$COMMITS" >> $GITHUB_OUTPUT
+      - name: Setup Flutter
+        if: steps.check_commits.outputs.new_commits > 0
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+      
+      - name: Get dependencies
+        if: steps.check_commits.outputs.new_commits > 0
+        run: flutter pub get
+      
+      - name: Build release APK
+        if: steps.check_commits.outputs.new_commits > 0
+        run: flutter build apk --release --split-per-abi
+      
+      - name: Upload to public repo
+        if: steps.check_commits.outputs.new_commits > 0
+        run: |
+          mkdir -p build_output
+          for f in build/app/outputs/flutter-apk/*.apk; do
+            base=$(basename "$f" .apk)
+            cp "$f" "build_output/${base}-$(date +%Y%m%d-%H%M).apk"
+          done
+
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          git clone https://${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/gabrielramos02/tpv_release.git releases
+          cp build_output/* releases/
+          
+          cd releases
+          git add .
+          git commit -m "Release $(date +%Y-%m-%d)" || echo "No changes to commit"
+          git push
