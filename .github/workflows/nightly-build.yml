@@ -60,7 +60,7 @@ jobs:
       - name: Create tag in releases repo
         if: steps.check_commits.outputs.new_commits > 0
         run: |
-          git clone https://x-access-token:${{ secrets.RELEASES_REPO_TOKEN }}@github.com/<owner>/<releases-repo>.git releases_repo
+          git clone https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/gabrielramos02/tpv_release.git releases_repo
           cd releases_repo
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
