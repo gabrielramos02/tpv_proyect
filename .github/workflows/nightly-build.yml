@@ -49,6 +49,23 @@ jobs:
             base=$(basename "$f" .apk)
             cp "$f" "build_output/${base}-$(date +%Y%m%d-%H%M).apk"
           done
+      - name: Generate release tag
+        if: steps.check_commits.outputs.new_commits > 0
+        id: release_tag
+        run: |
+          TAG="nightly-$(date +%Y%m%d-%H%M)"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "name=Nightly Build $(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Create tag in releases repo
+        if: steps.check_commits.outputs.new_commits > 0
+        run: |
+          git clone https://x-access-token:${{ secrets.RELEASES_REPO_TOKEN }}@github.com/<owner>/<releases-repo>.git releases_repo
+          cd releases_repo
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${{ steps.release_tag.outputs.tag }}
+          git push origin ${{ steps.release_tag.outputs.tag }}
 
       - name: Create GitHub Release
         if: steps.check_commits.outputs.new_commits > 0
