@@ -30,7 +30,7 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      - name: 🔧 Set JAVA_HOME
+      - name: Set JAVA_HOME
         run: echo "JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
 
       - name: Get dependencies
