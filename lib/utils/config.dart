@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
 
@@ -21,7 +20,6 @@ class Config {
 
   static String? get welcomeText {
     final String? welcomeText = _prefs.getString("welcome");
-    print(welcomeText);
     return welcomeText;
   }
 
@@ -36,11 +34,9 @@ class Config {
 
   static Future<void> setWelcomeText(String text) async {
     await _prefs.setString("welcome", text);
-    print(text);
   }
 
   static Future<void> setGoodbyeText(String text) async {
     await _prefs.setString("goodbye", text);
-    print(text);
   }
 }
