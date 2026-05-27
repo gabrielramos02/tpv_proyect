@@ -37,6 +37,21 @@ jobs:
         if: steps.check_commits.outputs.new_commits > 0
         run: flutter pub get
 
+      - name: Decode keystore
+        if: steps.check_commits.outputs.new_commits > 0
+        run: |
+          echo "${{ secrets.UPLOAD_KEY_JKS }}" | base64 -d > android/app/upload.jks
+
+      - name: Create key.properties
+        if: steps.check_commits.outputs.new_commits > 0
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.KEY_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=your-key.jks
+          EOF
+
       - name: Build release APK
         if: steps.check_commits.outputs.new_commits > 0
         run: flutter build apk --release --split-per-abi
