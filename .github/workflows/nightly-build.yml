@@ -33,14 +33,10 @@ jobs:
       - name: Set JAVA_HOME
         run: echo "JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
 
-      - name: Get dependencies
-        if: steps.check_commits.outputs.new_commits > 0
-        run: flutter pub get
-
       - name: Decode keystore
         if: steps.check_commits.outputs.new_commits > 0
         run: |
-          echo "${{ secrets.UPLOAD_KEY_JKS }}" | base64 -d > android/app/upload.jks
+          echo "${{ secrets.UPLOAD_KEY_JKS }}" | base64 -d -i > android/app/upload.jks
 
       - name: Create key.properties
         if: steps.check_commits.outputs.new_commits > 0
@@ -51,6 +47,10 @@ jobs:
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=your-key.jks
           EOF
+
+      - name: Get dependencies
+        if: steps.check_commits.outputs.new_commits > 0
+        run: flutter pub get
 
       - name: Build release APK
         if: steps.check_commits.outputs.new_commits > 0
