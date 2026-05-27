@@ -1,15 +1,14 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
-import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
-import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/config.dart' as config;
 import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/utils/logger.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
 
 Future printReceive(List<OrderLine> orderLines, String number) async {
-  var reconnect = false;
+  logger.i('Starting print process for table: $number');
   var printerManager = FlutterThermalPrinter.instance;
   List<int>? pendingTask;
   Printer? selectedPrinter;
@@ -173,18 +172,23 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
   );
   bytes += generator.emptyLines(2);
 
-  void _printEscPos(List<int> bytes, Generator generator) async {
-    if (selectedPrinter == null) return;
+  void printEscPos(List<int> bytes, Generator generator) async {
+    if (selectedPrinter == null) {
+      logger.w("No printer selected");
+      return;
+    }
     var bluetoothPrinter = selectedPrinter;
 
     switch (bluetoothPrinter.connectionType) {
       case ConnectionType.USB:
+        logger.i("Printing via USB");
         bytes += generator.feed(2);
         bytes += generator.cut();
         await printerManager.printData(bluetoothPrinter, bytes);
         pendingTask = null;
         break;
       case ConnectionType.BLE:
+        logger.i("Printing via BLE");
         bytes += generator.cut();
         await printerManager.printData(bluetoothPrinter, bytes);
         pendingTask = null;
@@ -194,5 +198,5 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
     }
   }
 
-  _printEscPos(bytes, generator);
+  printEscPos(bytes, generator);
 }

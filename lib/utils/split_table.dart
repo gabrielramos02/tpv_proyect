@@ -2,7 +2,6 @@ import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
-import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/db_updates.dart';
 import 'package:flutter_proyect/utils/print/print_ticket.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
@@ -57,7 +56,6 @@ class _SplitTableState extends State<SplitTable> {
             restTable: 99,
           ),
         );
-    print("createOrder,${newSplitTableOrder.id}");
     setState(() {
       splitTableOrder = newSplitTableOrder;
     });
@@ -212,7 +210,8 @@ class _SplitTableState extends State<SplitTable> {
     await DbUpdates.updatedOrders(99);
     await DbUpdates.updatedOrders(widget.mesa.id);
     RestTable mesa = RestTable(id: 99, state: 0, left: 0, top: 0, number: "0");
-    final result = await showDialog(
+    if (!mounted) return;
+    await showDialog(
       context: context,
       builder: (context) => TableView(mesa: mesa),
     );
@@ -226,6 +225,7 @@ class _SplitTableState extends State<SplitTable> {
     }
     getRightLines();
     getLeftLines();
+    if (!mounted) return;
     if (leftList.isEmpty && rightList.isEmpty) {
       Navigator.of(context).pop();
     }

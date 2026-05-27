@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/utils/logger.dart';
 
 class DbUpdates {
   static Future<void> updatedOrders(int tableID) async {
+    logger.i('Updating orders for table ID: $tableID');
     List<Order> ordersFromTable =
         await (database.select(database.orders)..where((e) {
               return e.restTable.isValue(tableID) & e.closedAt.isNull();
@@ -68,12 +70,10 @@ class DbUpdates {
         await (database.delete(
           database.orders,
         )..whereSamePrimaryKey(order)).go();
-        print("aqui,${order.id}");
       }
       await (database.update(database.restTables)
             ..where((e) => e.id.isValue(tableID)))
           .write(RestTablesCompanion(state: Value(tableState)));
-      print("ejecuted");
     }
 
     //**************************************************

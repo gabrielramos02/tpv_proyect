@@ -42,7 +42,7 @@ class _AddTypesFormState extends State<AddTypesForm> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(Map());
+            Navigator.of(context).pop({});
           },
           child: const Text('Cancelar'),
         ),

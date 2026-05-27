@@ -124,7 +124,7 @@ class _AddProductsFormState extends State<AddProductsForm> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(Map());
+            Navigator.of(context).pop({});
           },
           child: const Text('Cancelar'),
         ),

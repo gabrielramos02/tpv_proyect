@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
-import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/utils/config.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
@@ -157,7 +155,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
   }
 
   // conectar dispositivo
-  _connectDevice() async {
+  void _connectDevice() async {
     _isConnected = false;
     if (selectedPrinter == null) return;
     switch (selectedPrinter!.connectionType) {
@@ -335,7 +333,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
                   ),
                 ),
                 DropdownButtonFormField<ConnectionType>(
-                  value: defaultPrinterType,
+                  initialValue: defaultPrinterType,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.print, size: 24),
                     labelText: "Type Printer Device",
