@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.tpv_proyect"
+    namespace = "com.tpv.proyectV2"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
