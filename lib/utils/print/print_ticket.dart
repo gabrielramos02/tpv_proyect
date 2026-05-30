@@ -184,13 +184,19 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
         logger.i("Printing via USB");
         bytes += generator.feed(2);
         bytes += generator.cut();
+        logger.d("Final byte array length: ${bytes.length}");
         await printerManager.printData(bluetoothPrinter, bytes);
         pendingTask = null;
         break;
       case ConnectionType.BLE:
         logger.i("Printing via BLE");
         bytes += generator.cut();
-        await printerManager.printData(bluetoothPrinter, bytes);
+        await printerManager.printData(
+          bluetoothPrinter,
+          bytes,
+          longData: true,
+          chunkSize: 20,
+        );
         pendingTask = null;
         if (Platform.isAndroid) pendingTask = bytes;
         break;

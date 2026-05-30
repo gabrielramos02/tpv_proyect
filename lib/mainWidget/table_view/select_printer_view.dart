@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/utils/config.dart';
+import 'package:flutter_proyect/utils/logger.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PrintConfigView extends StatefulWidget {
   const PrintConfigView({super.key});
@@ -14,13 +16,13 @@ class PrintConfigView extends StatefulWidget {
 
 class _PrintConfigViewState extends State<PrintConfigView> {
   final printerManager = FlutterThermalPrinter.instance;
-  // Printer Type [bluetooth, usb, network]
   List<ConnectionType> connections = <ConnectionType>[
     ConnectionType.BLE,
     ConnectionType.NETWORK,
   ];
-  var defaultPrinterType = ConnectionType.BLE;
-  var _isConnected = false;
+  ConnectionType defaultPrinterType = ConnectionType.BLE;
+  bool _isConnected = false;
+  bool _isScanning = false;
   List<Printer> devices = <Printer>[];
   StreamSubscription<List<Printer>>? _subscription;
   List<int>? pendingTask;
@@ -34,6 +36,20 @@ class _PrintConfigViewState extends State<PrintConfigView> {
 
   ///////////////////////////////////////////
   void _scan() async {
+    if (Platform.isAndroid) {
+      if (await Permission.bluetoothScan.isDenied) {
+        await Permission.bluetoothScan.request();
+      }
+      if (await Permission.bluetoothConnect.isDenied) {
+        await Permission.bluetoothConnect.request();
+      }
+      // Android 11 o inferior (necesario para escanear Bluetooth Classic)
+      if (await Permission.locationWhenInUse.isDenied) {
+        await Permission.locationWhenInUse.request();
+      }
+    }
+    logger.i("Scanning for printers with connection types: $connections");
+    _isScanning = true;
     await printerManager.getPrinters(connectionTypes: connections);
     _subscription = printerManager.devicesStream.listen((List<Printer> event) {
       setState(() {
@@ -48,6 +64,12 @@ class _PrintConfigViewState extends State<PrintConfigView> {
     });
   }
 
+  void stopScan() {
+    logger.i("Stopping printer scan");
+    printerManager.stopScan();
+    _isScanning = false;
+  }
+
   @override
   void initState() {
     if (Platform.isWindows) defaultPrinterType = ConnectionType.USB;
@@ -55,8 +77,12 @@ class _PrintConfigViewState extends State<PrintConfigView> {
     _mensajeInicial = Config.welcomeText;
     _mensajeDespedida = Config.goodbyeText;
     _portController.text = _port;
-    _scan();
-
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      printerManager.bleConfig = const BleConfig(
+        connectionStabilizationDelay: Duration(seconds: 3),
+      );
+      _scan();
+    });
     setState(() {});
   }
 
@@ -104,6 +130,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
   }
 
   Future _printReceiveTest() async {
+    logger.i("Preparing test print for printer: ${selectedPrinter?.uniqueId}");
     List<int> bytes = [];
 
     // Xprinter XP-N160I
@@ -123,6 +150,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
 
   /// print ticket
   void _printEscPos(List<int> bytes, Generator generator) async {
+    logger.i("Starting print job for printer: ${selectedPrinter?.uniqueId}");
     if (selectedPrinter == null) return;
     var bluetoothPrinter = selectedPrinter!;
 
@@ -132,12 +160,14 @@ class _PrintConfigViewState extends State<PrintConfigView> {
         bytes += generator.cut();
         await printerManager.printData(bluetoothPrinter, bytes);
         pendingTask = null;
+        logger.i("Print job sent to USB printer: ${bluetoothPrinter.uniqueId}");
         break;
       case ConnectionType.BLE:
         bytes += generator.cut();
         await printerManager.printData(bluetoothPrinter, bytes);
         pendingTask = null;
         if (Platform.isAndroid) pendingTask = bytes;
+        logger.i("Print job sent to BLE printer: ${bluetoothPrinter.uniqueId}");
         break;
       case ConnectionType.NETWORK:
         bytes += generator.feed(2);
@@ -149,6 +179,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
         await service.connect();
         await service.printTicket(bytes);
         await service.disconnect();
+        logger.i("Print job sent to Network printer at $_ipAddress:$_port");
         break;
       default:
     }
@@ -156,6 +187,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
 
   // conectar dispositivo
   void _connectDevice() async {
+    stopScan();
     _isConnected = false;
     if (selectedPrinter == null) return;
     switch (selectedPrinter!.connectionType) {
@@ -169,6 +201,7 @@ class _PrintConfigViewState extends State<PrintConfigView> {
         break;
       default:
     }
+    logger.i("Connected to printer: ${selectedPrinter?.uniqueId}");
     setState(() {});
   }
 
@@ -490,6 +523,30 @@ class _PrintConfigViewState extends State<PrintConfigView> {
             ),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (_isScanning) {
+                stopScan();
+              } else {
+                _scan();
+              }
+              setState(() {});
+            },
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(
+                _isScanning ? Colors.red : Colors.green,
+              ),
+              foregroundColor: WidgetStatePropertyAll(Colors.white),
+            ),
+            child: const Text('Toggle Scan'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Ok'),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.spaceBetween,
       ),
     );
   }
