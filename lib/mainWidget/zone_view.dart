@@ -1,11 +1,9 @@
-import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/config_view.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
-import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/new_table_form.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
@@ -120,6 +118,7 @@ class _ZoneViewState extends State<ZoneView> {
     );
     getTables();
   }
+
   void onPrintConfig() async {
     await Navigator.push(
       context,
@@ -204,7 +203,7 @@ class _ZoneViewState extends State<ZoneView> {
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   child: ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
-                    onPressed: ()=>onPrintConfig(),
+                    onPressed: () => onPrintConfig(),
                     child: Text(
                       "Config",
                       style: Theme.of(context).textTheme.titleLarge,

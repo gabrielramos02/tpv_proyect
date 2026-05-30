@@ -1,17 +1,17 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
-import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
-import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
-import 'package:flutter_proyect/mainWidget/table_view/select_printer_view.dart';
 import 'package:flutter_proyect/utils/config.dart' as config;
 import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/utils/logger.dart';
+import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
+import 'package:flutter_thermal_printer/utils/printer.dart';
 
 Future printReceive(List<OrderLine> orderLines, String number) async {
-  var reconnect = false;
-  var printerManager = PrinterManager.instance;
+  logger.i('Starting print process for table: $number');
+  var printerManager = FlutterThermalPrinter.instance;
   List<int>? pendingTask;
-  BluetoothPrinter? selectedPrinter;
+  Printer? selectedPrinter;
   List<int> bytes = [];
   selectedPrinter = config.Config.selectedPrinter;
   String? GOODBYE_MSG = config.Config.goodbyeText?.toUpperCase();
@@ -79,9 +79,7 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
   for (var orderLine in orderLines) {
     suma += orderLine.totalPrice;
     String linePrice = orderLine.totalPrice.toStringAsFixed(2);
-    var priceText = Uint8List.fromList(
-      linePrice.codeUnits + [128],
-    );
+    var priceText = Uint8List.fromList(linePrice.codeUnits + [128]);
     bytes += generator.row([
       PosColumn(
         text: '${orderLine.quantity}x',
@@ -175,65 +173,34 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
   bytes += generator.emptyLines(2);
 
   void printEscPos(List<int> bytes, Generator generator) async {
-    if (selectedPrinter == null) return;
-    var bluetoothPrinter = selectedPrinter!;
+    if (selectedPrinter == null) {
+      logger.w("No printer selected");
+      return;
+    }
+    var bluetoothPrinter = selectedPrinter;
 
-    switch (bluetoothPrinter.typePrinter) {
-      case PrinterType.usb:
+    switch (bluetoothPrinter.connectionType) {
+      case ConnectionType.USB:
+        logger.i("Printing via USB");
         bytes += generator.feed(2);
         bytes += generator.cut();
-        await printerManager.connect(
-          type: bluetoothPrinter.typePrinter,
-          model: UsbPrinterInput(
-            name: bluetoothPrinter.deviceName,
-            productId: bluetoothPrinter.productId,
-            vendorId: bluetoothPrinter.vendorId,
-          ),
-        );
+        logger.d("Final byte array length: ${bytes.length}");
+        await printerManager.printData(bluetoothPrinter, bytes);
         pendingTask = null;
         break;
-      case PrinterType.bluetooth:
+      case ConnectionType.BLE:
+        logger.i("Printing via BLE");
         bytes += generator.cut();
-        await printerManager.connect(
-          type: bluetoothPrinter.typePrinter,
-          model: BluetoothPrinterInput(
-            name: bluetoothPrinter.deviceName,
-            address: bluetoothPrinter.address!,
-            isBle: bluetoothPrinter.isBle ?? false,
-            autoConnect: reconnect,
-          ),
+        await printerManager.printData(
+          bluetoothPrinter,
+          bytes,
+          longData: true,
+          chunkSize: 20,
         );
         pendingTask = null;
         if (Platform.isAndroid) pendingTask = bytes;
         break;
-      case PrinterType.network:
-        bytes += generator.feed(2);
-        bytes += generator.cut();
-        await printerManager.connect(
-          type: bluetoothPrinter.typePrinter,
-          model: TcpPrinterInput(ipAddress: bluetoothPrinter.address!),
-        );
-        break;
       default:
-    }
-    if (bluetoothPrinter.typePrinter == PrinterType.bluetooth &&
-        Platform.isAndroid) {
-      if (selectedPrinter.address != "") {
-        bool sucessfullPrint = await printerManager.send(
-          type: bluetoothPrinter.typePrinter,
-          bytes: bytes,
-        );
-        if (!sucessfullPrint) {
-          await (database.delete(
-            database.tickets,
-          )..whereSamePrimaryKey(ticket)).go();
-        }
-        print(sucessfullPrint);
-
-        pendingTask = null;
-      }
-    } else {
-      printerManager.send(type: bluetoothPrinter.typePrinter, bytes: bytes);
     }
   }
 

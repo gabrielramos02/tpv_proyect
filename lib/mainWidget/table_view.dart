@@ -1,10 +1,6 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:drift/drift.dart' as drift;
-import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/table_view/edit_product.dart';
@@ -21,7 +17,6 @@ import 'package:flutter_proyect/utils/edit_products_form.dart';
 import 'package:flutter_proyect/utils/edit_types_form.dart';
 import 'package:flutter_proyect/utils/free_price_form.dart';
 import 'package:flutter_proyect/utils/split_table.dart';
-import 'package:flutter_proyect/utils/config.dart' as config;
 
 class TableView extends StatefulWidget {
   const TableView({super.key, required this.mesa});
@@ -366,6 +361,7 @@ class _TableViewState extends State<TableView> {
     );
     getLines();
     DbUpdates.updatedOrders(widget.mesa.id);
+    if (!mounted) return;
     if (result.isEmpty) {
       Navigator.of(context).pop();
     }
@@ -373,6 +369,7 @@ class _TableViewState extends State<TableView> {
 
   void onSplitTable() async {
     await DbUpdates.updatedOrders(widget.mesa.id);
+    if (!mounted) return;
     final result = await showDialog(
       context: context,
       builder: (context) => SplitTable(mesa: widget.mesa),
@@ -423,6 +420,7 @@ class _TableViewState extends State<TableView> {
           ))
           .go();
       await DbUpdates.updatedOrders(widget.mesa.id);
+      if (!mounted) return;
       Navigator.of(context).pop();
     }
   }

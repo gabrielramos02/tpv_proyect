@@ -5,10 +5,12 @@
 import FlutterMacOS
 import Foundation
 
-import network_info_plus
+import flutter_thermal_printer
 import shared_preferences_foundation
+import universal_ble
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  NetworkInfoPlusPlugin.register(with: registry.registrar(forPlugin: "NetworkInfoPlusPlugin"))
+  FlutterThermalPrinterPlugin.register(with: registry.registrar(forPlugin: "FlutterThermalPrinterPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
+  UniversalBlePlugin.register(with: registry.registrar(forPlugin: "UniversalBlePlugin"))
 }

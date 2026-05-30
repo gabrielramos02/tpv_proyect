@@ -139,7 +139,7 @@ class _CheckoutState extends State<Checkout> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Cobrar', textAlign: TextAlign.center),
-      content: Container(
+      content: SizedBox(
         width: MediaQuery.sizeOf(context).width / 1.5,
         child: Row(
           spacing: 10,
@@ -752,7 +752,8 @@ class _CheckoutState extends State<Checkout> {
                           e.closedAt.isNull(),
                     ))
                     .get();
-
+            if (!mounted) return;
+            if (!context.mounted) return;
             Navigator.of(context).pop(ordersFromTable);
           },
           child: const Text('OK'),
