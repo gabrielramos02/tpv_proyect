@@ -4,7 +4,7 @@ import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/mainWidget/zone_view.dart';
 import 'package:flutter_proyect/utils/config.dart';
 
-final database = AppDatabase();
+AppDatabase database = AppDatabase();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
