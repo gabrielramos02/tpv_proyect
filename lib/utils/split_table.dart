@@ -231,12 +231,6 @@ class _SplitTableState extends State<SplitTable> {
     }
   }
 
-  Future onPrintReceive() async {
-    if (rightList.isNotEmpty) {
-      await printReceive(rightList, widget.mesa.number);
-    }
-  }
-
   void onShowSnackBar() {
     final snackBar = SnackBar(
       content: Text(
@@ -665,20 +659,6 @@ class _SplitTableState extends State<SplitTable> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 10),
-                            child: ElevatedButton(
-                              style: ProyectStyles.buttonStyles(context),
-                              onPressed: () {
-                                onPrintReceive();
-                              },
-                              child: Text(
-                                "Factura",
-                                style: Theme.of(context).textTheme.titleLarge,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
                           Container(
                             margin: EdgeInsets.symmetric(horizontal: 10),
                             child: ElevatedButton(
