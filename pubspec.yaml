@@ -45,6 +45,9 @@ dependencies:
   flutter_thermal_printer: ^2.2.1
   logger: ^2.7.0
   permission_handler: ^12.0.1
+  path: ^1.9.1
+  file_picker: ^12.0.0-beta.5
+  sqlite3: ^3.3.3
 
 dev_dependencies:
   flutter_test:
