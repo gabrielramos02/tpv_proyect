@@ -428,6 +428,11 @@ class _TableViewState extends State<TableView> {
   // *** Print Related ***
   Future onPrintReceive() async {
     await printReceive(orderLines, widget.mesa.number);
+    RestTable mesa = widget.mesa.copyWithCompanion(
+      RestTablesCompanion(state: drift.Value(2)),
+    );
+
+    await database.update(database.restTables).replace(mesa);
   }
 
   @override
