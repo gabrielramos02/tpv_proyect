@@ -250,8 +250,8 @@ class _ZoneViewState extends State<ZoneView> {
                     child: LongPressDraggable(
                       onDragEnd: (details) {
                         final newPositionTable = index.copyWith(
-                          top: (details.offset.dy - 56),
-                          left: details.offset.dx,
+                          top: ((details.offset.dy - 56) / 100).round() * 100,
+                          left: (details.offset.dx / 30).round() * 30,
                         );
                         onDragEnd(newPositionTable);
                       },
