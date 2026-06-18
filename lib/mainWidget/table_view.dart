@@ -430,9 +430,6 @@ class _TableViewState extends State<TableView> {
     await printReceive(orderLines, widget.mesa.number);
   }
 
-  // Printer Type [bluetooth, usb, network]
-  // *******************************
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(

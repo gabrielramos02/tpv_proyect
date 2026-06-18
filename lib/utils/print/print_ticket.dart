@@ -10,7 +10,6 @@ import 'package:flutter_thermal_printer/utils/printer.dart';
 Future printReceive(List<OrderLine> orderLines, String number) async {
   logger.i('Starting print process for table: $number');
   var printerManager = FlutterThermalPrinter.instance;
-  List<int>? pendingTask;
   Printer? selectedPrinter;
   List<int> bytes = [];
   selectedPrinter = config.Config.selectedPrinter;
@@ -126,7 +125,7 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
 
   bytes += generator.row([
     PosColumn(
-      text: 'N°${ticket.id.toString().padLeft(8, '0')}',
+      text: 'N°${orderLines[0].order.toString().padLeft(8, '0')}',
       width: 5,
       styles: PosStyles(align: PosAlign.left, underline: false),
     ),
@@ -186,7 +185,6 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
         bytes += generator.cut();
         logger.d("Final byte array length: ${bytes.length}");
         await printerManager.printData(bluetoothPrinter, bytes);
-        pendingTask = null;
         break;
       case ConnectionType.BLE:
         logger.i("Printing via BLE");
@@ -197,8 +195,6 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
           longData: true,
           chunkSize: 20,
         );
-        pendingTask = null;
-        if (Platform.isAndroid) pendingTask = bytes;
         break;
       default:
     }
