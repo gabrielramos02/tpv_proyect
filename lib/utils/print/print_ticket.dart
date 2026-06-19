@@ -193,7 +193,7 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
           bluetoothPrinter,
           bytes,
           longData: true,
-          chunkSize: 20,
+          chunkSize: 500,
         );
         break;
       default:
