@@ -3,7 +3,8 @@ import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
 
 class AddProductsForm extends StatefulWidget {
-  const AddProductsForm({super.key});
+  const AddProductsForm({super.key, required this.selectedFamily});
+  final int selectedFamily;
 
   @override
   State<AddProductsForm> createState() => _AddProductsFormState();
@@ -82,6 +83,7 @@ class _AddProductsFormState extends State<AddProductsForm> {
             ),
             DropdownButtonFormField(
               hint: Text("Familia"),
+              initialValue: widget.selectedFamily,
               isExpanded: true,
               items: productTypes.map((index) {
                 return DropdownMenuItem(
@@ -102,6 +104,7 @@ class _AddProductsFormState extends State<AddProductsForm> {
             DropdownButtonFormField(
               isExpanded: true,
               hint: Text("Selecciona el tipo de taxes"),
+              initialValue: taxes[0].id,
               items: taxes.map((index) {
                 return DropdownMenuItem(
                   value: index.id,

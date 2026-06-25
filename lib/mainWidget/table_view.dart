@@ -161,7 +161,7 @@ class _TableViewState extends State<TableView> {
   void onAddProduct() async {
     final result = await showDialog(
       context: context,
-      builder: (context) => AddProductsForm(),
+      builder: (context) => AddProductsForm(selectedFamily: _selectedType),
     );
 
     if (result != {}) {
