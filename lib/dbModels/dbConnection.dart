@@ -15,7 +15,7 @@ part 'dbConnection.g.dart';
     Orders,
     OrderLines,
     Payments,
-    Tickets
+    Tickets,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -38,9 +38,11 @@ class AppDatabase extends _$AppDatabase {
         ).insert(TaxesCompanion.insert(name: "Normal", rate: 0.2));
       }
     },
-    onUpgrade: stepByStep(from1To2: (m,schema)async {
-            await m.createTable(schema.tickets);
-        })
+    onUpgrade: stepByStep(
+      from1To2: (m, schema) async {
+        await m.createTable(schema.tickets);
+      },
+    ),
   );
 
   static QueryExecutor _openConnection() {
