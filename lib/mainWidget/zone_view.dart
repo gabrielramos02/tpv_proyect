@@ -155,85 +155,95 @@ class _ZoneViewState extends State<ZoneView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {
-                      if (!deleteTable) {
-                        onShowSnackBar();
-                        setState(() {
-                          showSnackBar = true;
-                          deleteTable = true;
-                        });
-                      } else {
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    child: ElevatedButton(
+                      style: ProyectStyles.buttonStyles(context),
+                      onPressed: () {
+                        if (!deleteTable) {
+                          onShowSnackBar();
+                          setState(() {
+                            showSnackBar = true;
+                            deleteTable = true;
+                          });
+                        } else {
+                          hideSnackBar();
+                          setState(() {
+                            showSnackBar = false;
+                            deleteTable = false;
+                          });
+                        }
+                      },
+                      child: Text(
+                        "Eliminar Mesa",
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    child: ElevatedButton(
+                      style: ProyectStyles.buttonStyles(context),
+                      onPressed: () async {
                         hideSnackBar();
                         setState(() {
-                          showSnackBar = false;
                           deleteTable = false;
                         });
-                      }
-                    },
-                    child: Text(
-                      "Eliminar Mesa",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
+                        await onAddTable();
+                      },
+                      child: Text(
+                        "Agregar Mesa",
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () async {
-                      hideSnackBar();
-                      setState(() {
-                        deleteTable = false;
-                      });
-                      await onAddTable();
-                    },
-                    child: Text(
-                      "Agregar Mesa",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    child: ElevatedButton(
+                      style: ProyectStyles.buttonStyles(context),
+                      onPressed: () => onPrintConfig(),
+                      child: Text(
+                        "Config",
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () => onPrintConfig(),
-                    child: Text(
-                      "Config",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    child: ElevatedButton(
+                      style: ProyectStyles.buttonStyles(context),
+                      onPressed: () {},
+                      child: Text(
+                        "Caja",
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {},
-                    child: Text(
-                      "Caja",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () async {
-                      await onExit();
-                    },
-                    child: Text(
-                      "Salir",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    child: ElevatedButton(
+                      style: ProyectStyles.buttonStyles(context),
+                      onPressed: () async {
+                        await onExit();
+                      },
+                      child: Text(
+                        "Salir",
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
