@@ -1,9 +1,8 @@
 name: Nightly Build & Release
 
 on:
-  schedule:
-    - cron: "0 2 * * *"
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   build:
@@ -13,14 +12,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for new commits
-        id: check_commits
-        run: |
-          LAST_BUILD=$(git describe --tags --abbrev=0 2>/dev/null || echo "1970-01-01")
-          COMMITS=$(git log --oneline --since="$LAST_BUILD" | wc -l)
-          echo "new_commits=$COMMITS" >> $GITHUB_OUTPUT
       - name: Setup Flutter
-        if: steps.check_commits.outputs.new_commits > 0
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.x"
@@ -34,12 +26,10 @@ jobs:
         run: echo "JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
 
       - name: Decode keystore
-        if: steps.check_commits.outputs.new_commits > 0
         run: |
           echo "${{ secrets.UPLOAD_KEY_JKS }}" | base64 -d -i > android/app/upload.jks
 
       - name: Create key.properties
-        if: steps.check_commits.outputs.new_commits > 0
         run: |
           cat > android/key.properties <<EOF
           storePassword=${{ secrets.KEY_PASSWORD }}
@@ -49,15 +39,12 @@ jobs:
           EOF
 
       - name: Get dependencies
-        if: steps.check_commits.outputs.new_commits > 0
         run: flutter pub get
 
       - name: Build release APK
-        if: steps.check_commits.outputs.new_commits > 0
         run: flutter build apk --release --split-per-abi
 
       - name: Upload to public repo
-        if: steps.check_commits.outputs.new_commits > 0
         run: |
           mkdir -p build_output
           for f in build/app/outputs/flutter-apk/*.apk; do
@@ -65,7 +52,6 @@ jobs:
             cp "$f" "build_output/${base}-$(date +%Y%m%d-%H%M).apk"
           done
       - name: Generate release tag
-        if: steps.check_commits.outputs.new_commits > 0
         id: release_tag
         run: |
           TAG="nightly-$(date +%Y%m%d-%H%M)"
@@ -73,7 +59,6 @@ jobs:
           echo "name=Nightly Build $(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
       - name: Create tag in releases repo
-        if: steps.check_commits.outputs.new_commits > 0
         run: |
           git clone https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/gabrielramos02/tpv_release.git releases_repo
           cd releases_repo
@@ -83,7 +68,6 @@ jobs:
           git push origin ${{ steps.release_tag.outputs.tag }}
 
       - name: Create GitHub Release in releases repo
-        if: steps.check_commits.outputs.new_commits > 0
         uses: softprops/action-gh-release@v1
         with:
           files: build_output/*.apk
