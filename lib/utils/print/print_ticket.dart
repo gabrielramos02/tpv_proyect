@@ -1,8 +1,7 @@
-import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
-import 'package:flutter_proyect/utils/config.dart' as config;
 import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/utils/config.dart' as config;
 import 'package:flutter_proyect/utils/logger.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
