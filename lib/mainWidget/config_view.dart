@@ -73,9 +73,8 @@ class ConfigView extends StatelessWidget {
               await database.close();
 
               final backupFile = await FilePicker.pickFiles();
-              if (backupFile == null) return;
-
-              final backupPath = backupFile.files.single.path;
+              backupFile.single.path; // Asegúrate de que solo se seleccione un archivo
+              final backupPath = backupFile.single.path;
               if (backupPath == null) {
                 return; // Seguridad por si el path es nulo
               }
