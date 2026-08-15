@@ -16,8 +16,8 @@ class _AddProductsFormState extends State<AddProductsForm> {
   List<Taxe> taxes = [];
   String name = "";
   String price = "";
-  int? type = 0;
-  int? taxRate = 0;
+  int? type;
+  int? taxRate;
   @override
   void initState() {
     super.initState();
@@ -134,6 +134,8 @@ class _AddProductsFormState extends State<AddProductsForm> {
         TextButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
+              type ??= widget.selectedFamily;
+              taxRate ??= taxes[0].id;
               final ProductsClassCompanion response =
                   ProductsClassCompanion.insert(
                     name: name,
