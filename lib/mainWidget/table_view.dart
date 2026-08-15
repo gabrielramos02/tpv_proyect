@@ -175,7 +175,6 @@ class _TableViewState extends State<TableView> {
 
   void onTapProduct(ProductsClassData producto) async {
     double price = double.parse(producto.price.toStringAsFixed(2));
-    OrderLine returnedOrder;
     if (priceText != "") {
       price = double.parse(priceText);
     }
@@ -205,7 +204,7 @@ class _TableViewState extends State<TableView> {
               restTable: widget.mesa.id,
             ),
           );
-      returnedOrder = await database
+      await database
           .into(database.orderLines)
           .insertReturning(
             OrderLinesCompanion.insert(
@@ -219,7 +218,7 @@ class _TableViewState extends State<TableView> {
             ),
           );
     } else if (isNewProduct) {
-      returnedOrder = await database
+      await database
           .into(database.orderLines)
           .insertReturning(
             OrderLinesCompanion.insert(
@@ -370,7 +369,7 @@ class _TableViewState extends State<TableView> {
   void onSplitTable() async {
     await DbUpdates.updatedOrders(widget.mesa.id);
     if (!mounted) return;
-    final result = await showDialog(
+    await showDialog(
       context: context,
       builder: (context) => SplitTable(mesa: widget.mesa),
     );

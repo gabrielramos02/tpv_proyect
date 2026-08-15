@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
 import 'package:flutter_proyect/utils/db_updates.dart';
-import 'package:flutter_proyect/utils/print/print_ticket.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 import '../main.dart';
