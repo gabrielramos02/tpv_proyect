@@ -1,4 +1,4 @@
-name: Nightly Build & Release
+name: Build test
 
 on:
   push:
@@ -44,19 +44,19 @@ jobs:
       - name: Build release APK
         run: flutter build apk --release --split-per-abi
 
-      - name: Upload to public repo
+      - name: Rename apks
         run: |
           mkdir -p build_output
           for f in build/app/outputs/flutter-apk/*.apk; do
             base=$(basename "$f" .apk)
-            cp "$f" "build_output/${base}-$(date +%Y%m%d-%H%M).apk"
+            cp "$f" "build_output/${base}-$(git rev-parse --short HEAD).apk"
           done
       - name: Generate release tag
         id: release_tag
         run: |
-          TAG="nightly-$(date +%Y%m%d-%H%M)"
+          TAG="build-$(git rev-parse --short HEAD)"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "name=Nightly Build $(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          echo "name=Build for commit $(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Create tag in releases repo
         run: |
@@ -73,7 +73,7 @@ jobs:
           files: build_output/*.apk
           tag_name: ${{ steps.release_tag.outputs.tag }}
           name: ${{ steps.release_tag.outputs.name }}
-          body: Automated nightly build release
+          body: Build for push on main
           draft: false
           prerelease: true
           repository: gabrielramos02/tpv_release
