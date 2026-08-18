@@ -11,6 +11,10 @@ class Config {
     _prefs = await SharedPreferences.getInstance();
     final printerManager = FlutterThermalPrinter.instance;
     if (Config.selectedPrinter == null) return;
+    printerManager.bleConfig = BleConfig(
+      connectionStabilizationDelay: Duration(seconds: 3),
+    );
+    logger.i("Connecting to BLE printer: ${selectedPrinter?.name}");
     switch (selectedPrinter!.connectionType) {
       case ConnectionType.USB:
         await printerManager.connect(selectedPrinter!);

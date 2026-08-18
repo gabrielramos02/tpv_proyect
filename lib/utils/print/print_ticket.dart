@@ -9,6 +9,9 @@ import 'package:flutter_thermal_printer/utils/printer.dart';
 Future printReceive(List<OrderLine> orderLines, String number) async {
   logger.i('Starting print process for table: $number');
   var printerManager = FlutterThermalPrinter.instance;
+  printerManager.bleConfig = BleConfig(
+    connectionStabilizationDelay: const Duration(seconds: 3),
+  );
   Printer? selectedPrinter;
   List<int> bytes = [];
   selectedPrinter = config.Config.selectedPrinter;
@@ -174,6 +177,10 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
     if (selectedPrinter == null) {
       logger.w("No printer selected");
       return;
+    }
+    if (selectedPrinter.isConnected != true ) {
+      logger.w("Printer is not connected");
+      printerManager.connect(selectedPrinter);
     }
     var bluetoothPrinter = selectedPrinter;
 
