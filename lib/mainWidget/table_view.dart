@@ -8,14 +8,14 @@ import 'package:flutter_proyect/mainWidget/table_view/keyboard.dart';
 import 'package:flutter_proyect/mainWidget/table_view/product_list.dart';
 import 'package:flutter_proyect/mainWidget/table_view/product_types.dart';
 import 'package:flutter_proyect/mainWidget/table_view/products.dart';
-import 'package:flutter_proyect/utils/add_products_form.dart';
-import 'package:flutter_proyect/utils/print/print_ticket.dart';
-import 'package:flutter_proyect/utils/add_types_form.dart';
+import 'package:flutter_proyect/utils/forms/add_products_form.dart';
+import 'package:flutter_proyect/utils/forms/add_types_form.dart';
 import 'package:flutter_proyect/utils/checkout.dart';
 import 'package:flutter_proyect/utils/db_updates.dart';
-import 'package:flutter_proyect/utils/edit_products_form.dart';
-import 'package:flutter_proyect/utils/edit_types_form.dart';
-import 'package:flutter_proyect/utils/free_price_form.dart';
+import 'package:flutter_proyect/utils/forms/edit_products_form.dart';
+import 'package:flutter_proyect/utils/forms/edit_types_form.dart';
+import 'package:flutter_proyect/utils/forms/free_price_form.dart';
+import 'package:flutter_proyect/utils/print/print_ticket.dart';
 import 'package:flutter_proyect/utils/split_table.dart';
 
 class TableView extends StatefulWidget {

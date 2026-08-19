@@ -29,6 +29,34 @@ class ConfigView extends StatelessWidget {
     await database.customStatement('VACUUM INTO ?', [file.absolute.path]);
   }
 
+  Future<void> importDatabase() async {
+    await database.close();
+
+    final backupFile = await FilePicker.pickFiles();
+    backupFile.single.path;
+    final backupPath = backupFile.single.path;
+    if (backupPath == null) {
+      return;
+    }
+    final backupDb = sqlite3.open(backupPath);
+
+    final tempPath = await getTemporaryDirectory();
+    final tempDb = p.join(tempPath.path, 'import.db');
+    backupDb
+      ..execute('VACUUM INTO ?', [tempDb])
+      ..close();
+
+    final tempDbFile = File(tempDb);
+
+    final appDir = await getApplicationSupportDirectory();
+    final dbPath = p.join(appDir.path, 'new_db.sqlite');
+    final databaseFile = File(dbPath);
+    await tempDbFile.copy((databaseFile).path);
+    await tempDbFile.delete();
+
+    database = AppDatabase();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,10 +79,10 @@ class ConfigView extends StatelessWidget {
             title: const Text('Editar Impresora'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => PrintConfigView()),
-              );
+                await showDialog(
+                  context: context,
+                  builder: (context) => const PrintConfigView(),
+                );
             },
           ),
           ListTile(
@@ -70,31 +98,7 @@ class ConfigView extends StatelessWidget {
             title: const Text('Importar Base de Datos'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-              await database.close();
-
-              final backupFile = await FilePicker.pickFiles();
-              backupFile.single.path; // Asegúrate de que solo se seleccione un archivo
-              final backupPath = backupFile.single.path;
-              if (backupPath == null) {
-                return; // Seguridad por si el path es nulo
-              }
-              final backupDb = sqlite3.open(backupPath);
-
-              final tempPath = await getTemporaryDirectory();
-              final tempDb = p.join(tempPath.path, 'import.db');
-              backupDb
-                ..execute('VACUUM INTO ?', [tempDb])
-                ..close();
-
-              final tempDbFile = File(tempDb);
-
-              final appDir = await getApplicationSupportDirectory();
-              final dbPath = p.join(appDir.path, 'new_db.sqlite');
-              final databaseFile = File(dbPath);
-              await tempDbFile.copy((databaseFile).path);
-              await tempDbFile.delete();
-
-              database = AppDatabase();
+              importDatabase();
             },
           ),
         ],
