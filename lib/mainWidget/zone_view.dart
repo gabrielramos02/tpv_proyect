@@ -4,7 +4,7 @@ import 'package:flutter_proyect/dbModels/dbConnection.dart';
 import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/mainWidget/config_view.dart';
 import 'package:flutter_proyect/mainWidget/table_view.dart';
-import 'package:flutter_proyect/utils/new_table_form.dart';
+import 'package:flutter_proyect/utils/forms/new_table_form.dart';
 import 'package:flutter_proyect/utils/proyect_styles.dart';
 
 class ZoneView extends StatefulWidget {
