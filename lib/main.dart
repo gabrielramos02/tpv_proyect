@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_proyect/dbModels/dbConnection.dart';
-import 'package:flutter_proyect/mainWidget/zone_view.dart';
-import 'package:flutter_proyect/utils/config.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/ui/features/zone/zone_view.dart';
+import 'package:flutter_proyect/data/services/settings.dart';
 
 AppDatabase database = AppDatabase();
 
