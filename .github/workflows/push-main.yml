@@ -45,6 +45,12 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Verify PR release build uses no keystore
+        if: github.event_name == 'pull_request'
+        run: |
+          test ! -f android/key.properties
+          test ! -f android/app/upload.jks
+
       - name: Build release APK
         run: flutter build apk --release --split-per-abi
 
