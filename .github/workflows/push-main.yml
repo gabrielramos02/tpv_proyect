@@ -45,13 +45,8 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            flutter build apk --debug
-          else
-            flutter build apk --release --split-per-abi
-          fi
+      - name: Build release APK
+        run: flutter build apk --release --split-per-abi
 
       - name: Rename apks
         if: github.event_name == 'push'
