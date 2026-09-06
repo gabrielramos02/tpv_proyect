@@ -3,6 +3,8 @@ name: Build test
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
@@ -26,10 +28,12 @@ jobs:
         run: echo "JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
 
       - name: Decode keystore
+        if: github.event_name == 'push'
         run: |
           echo "${{ secrets.UPLOAD_KEY_JKS }}" | base64 -d -i > android/app/upload.jks
 
       - name: Create key.properties
+        if: github.event_name == 'push'
         run: |
           cat > android/key.properties <<EOF
           storePassword=${{ secrets.KEY_PASSWORD }}
@@ -41,10 +45,16 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build release APK
-        run: flutter build apk --release --split-per-abi
+      - name: Build APK
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            flutter build apk --debug
+          else
+            flutter build apk --release --split-per-abi
+          fi
 
       - name: Rename apks
+        if: github.event_name == 'push'
         run: |
           mkdir -p build_output
           for f in build/app/outputs/flutter-apk/*.apk; do
@@ -52,6 +62,7 @@ jobs:
             cp "$f" "build_output/${base}-$(git rev-parse --short HEAD).apk"
           done
       - name: Generate release tag
+        if: github.event_name == 'push'
         id: release_tag
         run: |
           TAG="build-$(git rev-parse --short HEAD)"
@@ -59,6 +70,7 @@ jobs:
           echo "name=Build for commit $(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Create tag in releases repo
+        if: github.event_name == 'push'
         run: |
           git clone https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/gabrielramos02/tpv_release.git releases_repo
           cd releases_repo
@@ -68,6 +80,7 @@ jobs:
           git push origin ${{ steps.release_tag.outputs.tag }}
 
       - name: Create GitHub Release in releases repo
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v1
         with:
           files: build_output/*.apk
