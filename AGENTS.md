@@ -31,11 +31,29 @@ Flutter point-of-sale (TPV) app. Pub package name is `flutter_proyect` — impor
 
 ## Git workflow & agents
 
-- Feature work never lands directly on `main` — pushing to `main` ships a release (see Conventions). Always open a **PR targeting `main`**; review via Linear Reviews or GitHub.
-- **Branch per Linear issue** using the auto-generated branch name (e.g. `grp29113110/tpv-6-databaseservice-capa-de-repositorios`). Use the magic word `Fixes TPV-N` in the PR description to link it to Linear and auto-close the issue on merge; `Refs TPV-N` links without closing.
+### Branch structure
+
+Feature work never lands directly on `main` — pushing to `main` ships a release (see Conventions). We use a **project-based branching model**:
+
+```
+main
+├── project/major-refactor    ← long-lived branch per Linear project
+│   ├── TPV-123-fix-login     ← issue branch → PR to project branch
+│   └── TPV-124-add-auth      ← issue branch → PR to project branch
+└── project/fix-printer       ← long-lived branch per Linear project
+    └── TPV-130-fix-thermal   ← issue branch → PR to project branch
+```
+
+- **One long-lived branch per Linear project** named `project/<project-slug>` (e.g. `project/major-refactor`, `project/fix-printer`).
+- **Issue work** creates a short-lived branch from the project branch and opens a **PR targeting the project branch**.
+- Use `Fixes TPV-N` in the PR description to link to Linear and auto-close the issue on merge; `Refs TPV-N` links without closing.
+- When a project is complete, open a **PR from the project branch → `main`** to ship.
+- **Merge `main` into project branches regularly** (daily or every few days) to prevent drift and catch conflicts early.
+
+### Linear automation & status
+
 - Linear git automations move status automatically: PR open → In Progress, review requested → In Review, merge → Done.
-- Issues can be **delegated to agents** (GitHub Copilot is installed as an agent); the human stays the assignee/owner and reviews the agent's PR. Agent PRs are validated by `.github/workflows/pr-check.yml` (`flutter analyze` + `flutter test`) — agents can't reliably run the Flutter toolchain locally, so CI is the verification gate.
-- Provide agent instructions via Linear **Agent guidance** (Settings → Agents → Additional guidance): point at `gabrielramos02/tpv_proyect`, enforce per-issue branches + `Fixes TPV-N` in PRs, `flutter analyze` → `flutter test`, English comments, never commit `key.properties`/`upload.jks`.
+- Agent guidance: point at `gabrielramos02/tpv_proyect`, enforce per-issue branches targeting the project branch + `Fixes TPV-N` in PRs, `flutter analyze` → `flutter test`, English comments, never commit `key.properties`/`upload.jks`.
 
 ## Conventions & gotchas
 
