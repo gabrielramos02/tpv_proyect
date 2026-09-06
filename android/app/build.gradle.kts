@@ -12,7 +12,6 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
-val hasReleaseKeystore = keystorePropertiesFile.exists()
 
 android {
     namespace = "com.tpv.proyectV2"
@@ -36,21 +35,17 @@ android {
     }
 
     signingConfigs {
-        if (hasReleaseKeystore) {
-            create("release") {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-                storePassword = keystoreProperties["storePassword"] as String
-            }
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String
         }
     }
 
     buildTypes {
         release {
-            if (hasReleaseKeystore) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+        signingConfig = signingConfigs.getByName("release")
         }
     }
 }
