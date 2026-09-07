@@ -1,19 +1,22 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/data/services/settings.dart' as config;
 import 'package:flutter_proyect/core/logger.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
 
-Future printReceive(List<OrderLine> orderLines, String number) async {
+Future printReceive(
+  AppDatabase database,
+  List<OrderLine> orderLines,
+  String number,
+) async {
   logger.i('Starting print process for table: $number');
   var printerManager = FlutterThermalPrinter.instance;
   Printer? selectedPrinter;
   List<int> bytes = [];
   selectedPrinter = config.Config.selectedPrinter;
-  String? GOODBYE_MSG = config.Config.goodbyeText?.toUpperCase();
-  String? INFO_MSG = config.Config.welcomeText?.toUpperCase();
+  String? goodbyeMsg = config.Config.goodbyeText?.toUpperCase();
+  String? infoMsg = config.Config.welcomeText?.toUpperCase();
 
   final profile = await CapabilityProfile.load();
   // PaperSize.mm80 or PaperSize.mm58
@@ -38,7 +41,7 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
     ),
   );
   bytes += generator.text(
-    INFO_MSG ?? "",
+    infoMsg ?? "",
     styles: PosStyles(
       height: PosTextSize.size1,
       width: PosTextSize.size1,
@@ -161,7 +164,7 @@ Future printReceive(List<OrderLine> orderLines, String number) async {
   ]);
   bytes += generator.text('-' * 48);
   bytes += generator.text(
-    GOODBYE_MSG ?? "",
+    goodbyeMsg ?? "",
     styles: PosStyles(
       height: PosTextSize.size1,
       width: PosTextSize.size1,

@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:drift/drift.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/ui/features/config/select_printer_view.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class ConfigView extends StatelessWidget {
@@ -29,11 +30,10 @@ class ConfigView extends StatelessWidget {
     await database.customStatement('VACUUM INTO ?', [file.absolute.path]);
   }
 
-  Future<void> importDatabase() async {
-    await database.close();
+  Future<void> importDatabase(BuildContext context) async {
+    final service = context.read<DatabaseService>();
 
     final backupFile = await FilePicker.pickFiles();
-    backupFile.single.path;
     final backupPath = backupFile.single.path;
     if (backupPath == null) {
       return;
@@ -48,13 +48,15 @@ class ConfigView extends StatelessWidget {
 
     final tempDbFile = File(tempDb);
 
+    await service.closeDatabase();
+
     final appDir = await getApplicationSupportDirectory();
     final dbPath = p.join(appDir.path, 'new_db.sqlite');
     final databaseFile = File(dbPath);
-    await tempDbFile.copy((databaseFile).path);
+    await tempDbFile.copy(databaseFile.path);
     await tempDbFile.delete();
 
-    database = AppDatabase();
+    service.setDatabase(AppDatabase());
   }
 
   @override
@@ -90,7 +92,7 @@ class ConfigView extends StatelessWidget {
             title: const Text('Exportar Base de Datos'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-              createDatabaseBackup(database);
+              createDatabaseBackup(context.read<DatabaseService>().database);
             },
           ),
           ListTile(
@@ -98,7 +100,7 @@ class ConfigView extends StatelessWidget {
             title: const Text('Importar Base de Datos'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-              importDatabase();
+              importDatabase(context);
             },
           ),
         ],

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/ui/features/config/config_view.dart';
 import 'package:flutter_proyect/ui/features/table/table_view.dart';
 import 'package:flutter_proyect/ui/features/zone/new_table_form.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
+import 'package:provider/provider.dart';
 
 class ZoneView extends StatefulWidget {
   const ZoneView({super.key});
@@ -15,6 +16,7 @@ class ZoneView extends StatefulWidget {
 }
 
 class _ZoneViewState extends State<ZoneView> {
+  AppDatabase get database => context.read<DatabaseService>().database;
   List<Color?> stateList = [Colors.blue[100], Colors.yellow[100], Colors.green];
   List<RestTable> tableList = [];
   bool deleteTable = false;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/data/services/database/database_service.dart';
+import 'package:provider/provider.dart';
 
 class EditProductsForm extends StatefulWidget {
   const EditProductsForm({super.key, required this.product});
@@ -11,6 +12,7 @@ class EditProductsForm extends StatefulWidget {
 }
 
 class _EditProductsFormState extends State<EditProductsForm> {
+  AppDatabase get database => context.read<DatabaseService>().database;
   List<ProductTypesTableData> productTypes = [];
   List<Taxe> taxes = [];
   Map<String, dynamic> response = {};
