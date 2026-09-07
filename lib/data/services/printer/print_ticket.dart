@@ -15,8 +15,8 @@ Future printReceive(
   Printer? selectedPrinter;
   List<int> bytes = [];
   selectedPrinter = config.Config.selectedPrinter;
-  String? GOODBYE_MSG = config.Config.goodbyeText?.toUpperCase();
-  String? INFO_MSG = config.Config.welcomeText?.toUpperCase();
+  String? goodbyeMsg = config.Config.goodbyeText?.toUpperCase();
+  String? infoMsg = config.Config.welcomeText?.toUpperCase();
 
   final profile = await CapabilityProfile.load();
   // PaperSize.mm80 or PaperSize.mm58
@@ -41,7 +41,7 @@ Future printReceive(
     ),
   );
   bytes += generator.text(
-    INFO_MSG ?? "",
+    infoMsg ?? "",
     styles: PosStyles(
       height: PosTextSize.size1,
       width: PosTextSize.size1,
@@ -164,7 +164,7 @@ Future printReceive(
   ]);
   bytes += generator.text('-' * 48);
   bytes += generator.text(
-    GOODBYE_MSG ?? "",
+    goodbyeMsg ?? "",
     styles: PosStyles(
       height: PosTextSize.size1,
       width: PosTextSize.size1,
