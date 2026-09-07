@@ -1,11 +1,11 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/ui/features/table/table_view.dart';
 import 'package:flutter_proyect/data/repositories/db_updates.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
-
-import 'package:flutter_proyect/main.dart';
+import 'package:provider/provider.dart';
 
 class SplitTable extends StatefulWidget {
   const SplitTable({super.key, required this.mesa});
@@ -16,6 +16,7 @@ class SplitTable extends StatefulWidget {
 }
 
 class _SplitTableState extends State<SplitTable> {
+  AppDatabase get database => context.read<DatabaseService>().database;
   List<OrderLine> leftList = [];
   List<OrderLine> rightList = [];
   late Order splitTableOrder;
@@ -206,16 +207,16 @@ class _SplitTableState extends State<SplitTable> {
   }
 
   void onCheckout() async {
-    await DbUpdates.updatedOrders(99);
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, 99);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
     RestTable mesa = RestTable(id: 99, state: 0, left: 0, top: 0, number: "0");
     if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) => TableView(mesa: mesa),
     );
-    await DbUpdates.updatedOrders(99);
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, 99);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
     final Order response = await (database.select(
       database.orders,
     )..whereSamePrimaryKey(splitTableOrder)).getSingle();

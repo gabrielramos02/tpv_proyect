@@ -2,11 +2,11 @@ import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/data/repositories/db_updates.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
 import 'package:function_tree/function_tree.dart';
-
-import 'package:flutter_proyect/main.dart';
+import 'package:provider/provider.dart';
 
 TextEditingController inputControllerEfectivo = TextEditingController(text: "");
 TextEditingController inputControllerVisa = TextEditingController(text: "");
@@ -21,6 +21,7 @@ class Checkout extends StatefulWidget {
 }
 
 class _CheckoutState extends State<Checkout> {
+  AppDatabase get database => context.read<DatabaseService>().database;
   TextEditingController selected = inputControllerEfectivo;
   String selectedName = "Efectivo";
   List<Payment> paymentList = [];
@@ -116,7 +117,7 @@ class _CheckoutState extends State<Checkout> {
       pagado = pagado += double.parse(selected.text);
     });
     getOrders();
-    await DbUpdates.updatedOrders(widget.mesaID);
+    await DbUpdates.updatedOrders(database, widget.mesaID);
     setState(() {
       selected.text = "";
     });

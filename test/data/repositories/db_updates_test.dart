@@ -2,7 +2,6 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_proyect/data/repositories/db_updates.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart' as app;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -11,7 +10,6 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    app.database = db;
   });
 
   tearDown(() async {
@@ -78,7 +76,7 @@ void main() {
       await insertOrderLine(orderId, totalPrice: 100, taxPrice: 20);
       await insertPayment(orderId, payedAmount: 100);
 
-      await DbUpdates.updatedOrders(tableId);
+      await DbUpdates.updatedOrders(db, tableId);
 
       final updatedOrder = await (db.select(db.orders)
             ..where((e) => e.id.isValue(orderId)))
@@ -102,7 +100,7 @@ void main() {
       await insertOrderLine(orderId, totalPrice: 100, taxPrice: 20);
       await insertPayment(orderId, payedAmount: 50);
 
-      await DbUpdates.updatedOrders(tableId);
+      await DbUpdates.updatedOrders(db, tableId);
 
       final updatedOrder = await (db.select(db.orders)
             ..where((e) => e.id.isValue(orderId)))
@@ -122,7 +120,7 @@ void main() {
       final tableId = await insertTable();
       await insertOrder(tableId);
 
-      await DbUpdates.updatedOrders(tableId);
+      await DbUpdates.updatedOrders(db, tableId);
 
       final remainingOrders = await (db.select(db.orders)
             ..where((e) => e.restTable.isValue(tableId)))
@@ -136,7 +134,7 @@ void main() {
       await insertOrderLine(orderId, totalPrice: 120, taxPrice: 20);
       await insertPayment(orderId, payedAmount: 120);
 
-      await DbUpdates.updatedOrders(tableId);
+      await DbUpdates.updatedOrders(db, tableId);
 
       final updatedOrder = await (db.select(db.orders)
             ..where((e) => e.id.isValue(orderId)))

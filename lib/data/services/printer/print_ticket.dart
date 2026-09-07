@@ -1,12 +1,15 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/data/services/settings.dart' as config;
 import 'package:flutter_proyect/core/logger.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
 
-Future printReceive(List<OrderLine> orderLines, String number) async {
+Future printReceive(
+  AppDatabase database,
+  List<OrderLine> orderLines,
+  String number,
+) async {
   logger.i('Starting print process for table: $number');
   var printerManager = FlutterThermalPrinter.instance;
   Printer? selectedPrinter;

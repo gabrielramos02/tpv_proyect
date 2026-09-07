@@ -1,10 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart';
 import 'package:flutter_proyect/core/logger.dart';
 
 class DbUpdates {
-  static Future<void> updatedOrders(int tableID) async {
+  static Future<void> updatedOrders(AppDatabase database, int tableID) async {
     logger.i('Updating orders for table ID: $tableID');
     List<Order> ordersFromTable =
         await (database.select(database.orders)..where((e) {

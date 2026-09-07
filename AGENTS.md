@@ -13,8 +13,9 @@ Flutter point-of-sale (TPV) app. Pub package name is `flutter_proyect` — impor
 
 ## Architecture
 
-- `lib/main.dart` — entrypoint. Exposes a **global singleton** `AppDatabase database` that all widgets import and use directly (no DI/provider). DB queries are written inline in widgets.
-- `lib/data/services/database/` — drift database. `dbConnection.dart` (`AppDatabase`, current `schemaVersion` 2, step-by-step migrations), `tables.dart` (table definitions, referenced from `build.yaml`). `*.g.dart` / `*.steps.dart` are generated — never hand-edit.
+- `lib/main.dart` — entrypoint. Wires DI: registers `DatabaseService` at the root via `ChangeNotifierProvider` (package `provider`). DB queries are written inline in widgets.
+- `lib/data/services/database/` — drift database. `dbConnection.dart` (`AppDatabase`, current `schemaVersion` 2, step-by-step migrations), `database_service.dart` (`DatabaseService`, a `ChangeNotifier` that owns the current `AppDatabase` and supports swapping it after a DB import), `tables.dart` (table definitions, referenced from `build.yaml`). `*.g.dart` / `*.steps.dart` are generated — never hand-edit.
+- Widgets resolve the database via `context.read<DatabaseService>().database` (no global singleton). Repositories/data-layer functions (`DbUpdates`, `printReceive`) receive `AppDatabase` as a parameter so tests can inject an in-memory drift database.
 - `lib/data/services/` — `settings.dart` (SharedPreferences-backed `Config`, `Config.init()` runs in `main`), `printer/` (thermal printer via `flutter_thermal_printer`).
 - `lib/data/repositories/` — `db_updates.dart` (order/ticket state-machine logic, class `DbUpdates`; destined to become an order repository in Phase 2). Currently the only "repository".
 - `lib/domain/` — `calculate_from_expression.dart` (pure math).

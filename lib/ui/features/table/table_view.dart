@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/main.dart';
+import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/ui/core/widgets/edit_product.dart';
 import 'package:flutter_proyect/ui/core/widgets/keyboard.dart';
 import 'package:flutter_proyect/ui/core/widgets/product_list.dart';
@@ -17,6 +17,7 @@ import 'package:flutter_proyect/ui/features/table/forms/edit_types_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/free_price_form.dart';
 import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
 import 'package:flutter_proyect/ui/features/table/split_table.dart';
+import 'package:provider/provider.dart';
 
 class TableView extends StatefulWidget {
   const TableView({super.key, required this.mesa});
@@ -27,6 +28,7 @@ class TableView extends StatefulWidget {
 }
 
 class _TableViewState extends State<TableView> {
+  AppDatabase get database => context.read<DatabaseService>().database;
   List<OrderLine> orderLines = [];
   List<ProductTypesTableData> productTypes = [];
   List<ProductsClassData> products = [];
@@ -246,7 +248,7 @@ class _TableViewState extends State<TableView> {
     }
     keyboardKey.currentState?.onClearInput();
 
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
 
     await getLines();
   }
@@ -276,7 +278,7 @@ class _TableViewState extends State<TableView> {
       );
       await database.update(database.orderLines).replace(newProduct);
     }
-    await DbUpdates.updatedOrders(oldProduct.order);
+    await DbUpdates.updatedOrders(database, oldProduct.order);
     getLines();
   }
 
@@ -294,7 +296,7 @@ class _TableViewState extends State<TableView> {
       database.orderLines,
     )..where((e) => e.id.isValue(orderLine.id))).go();
     getLines();
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
     setState(() {
       _editedProduct = {};
     });
@@ -313,7 +315,7 @@ class _TableViewState extends State<TableView> {
             (database.orderLines.taxRate * database.orderLines.currentPrice),
       ),
     );
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
     getLines();
   }
 
@@ -340,7 +342,7 @@ class _TableViewState extends State<TableView> {
       });
     }
 
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
     getLines();
   }
 
@@ -353,13 +355,13 @@ class _TableViewState extends State<TableView> {
   }
 
   void onCheckout() async {
-    DbUpdates.updatedOrders(widget.mesa.id);
+    DbUpdates.updatedOrders(database, widget.mesa.id);
     final List<Order> result = await showDialog(
       context: context,
       builder: (context) => Checkout(mesaID: widget.mesa.id),
     );
     getLines();
-    DbUpdates.updatedOrders(widget.mesa.id);
+    DbUpdates.updatedOrders(database, widget.mesa.id);
     if (!mounted) return;
     if (result.isEmpty) {
       Navigator.of(context).pop();
@@ -367,14 +369,14 @@ class _TableViewState extends State<TableView> {
   }
 
   void onSplitTable() async {
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
     if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) => SplitTable(mesa: widget.mesa),
     );
     getLines();
-    await DbUpdates.updatedOrders(widget.mesa.id);
+    await DbUpdates.updatedOrders(database, widget.mesa.id);
   }
 
   void onDeleteTable() async {
@@ -418,7 +420,7 @@ class _TableViewState extends State<TableView> {
             (e) => e.id.isIn(orderLines.map((line) => line.id).toList()),
           ))
           .go();
-      await DbUpdates.updatedOrders(widget.mesa.id);
+      await DbUpdates.updatedOrders(database, widget.mesa.id);
       if (!mounted) return;
       Navigator.of(context).pop();
     }
@@ -426,7 +428,7 @@ class _TableViewState extends State<TableView> {
 
   // *** Print Related ***
   Future onPrintReceive() async {
-    await printReceive(orderLines, widget.mesa.number);
+    await printReceive(database, orderLines, widget.mesa.number);
     RestTable mesa = widget.mesa.copyWithCompanion(
       RestTablesCompanion(state: drift.Value(2)),
     );
