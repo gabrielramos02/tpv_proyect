@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter_proyect/data/repositories/ticket_repository.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/data/services/settings.dart' as config;
 import 'package:flutter_proyect/core/logger.dart';
@@ -11,6 +12,7 @@ Future printReceive(
   String number,
 ) async {
   logger.i('Starting print process for table: $number');
+  final ticketRepository = TicketRepository(database);
   var printerManager = FlutterThermalPrinter.instance;
   Printer? selectedPrinter;
   List<int> bytes = [];
@@ -113,9 +115,7 @@ Future printReceive(
     ),
   );
   bytes += generator.emptyLines(1);
-  Ticket ticket = await database
-      .into(database.tickets)
-      .insertReturning(TicketsCompanion.insert(totalPrice: suma));
+  Ticket ticket = await ticketRepository.addTicket(suma);
   bytes += generator.text(
     'FACTURA SIMPLIFICADA',
     styles: PosStyles(
