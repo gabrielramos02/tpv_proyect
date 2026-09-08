@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Result returned by [FreePriceForm] when the user confirms a price.
+class FreePriceResult {
+  const FreePriceResult({required this.price});
+
+  final String price;
+}
+
 class FreePriceForm extends StatefulWidget {
   const FreePriceForm({super.key});
 
@@ -10,7 +17,6 @@ class FreePriceForm extends StatefulWidget {
 class _FreePriceFormState extends State<FreePriceForm> {
   String price = "";
 
-  final Map<String, dynamic> response = {"price": "0"};
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -42,14 +48,13 @@ class _FreePriceFormState extends State<FreePriceForm> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(response);
+            Navigator.of(context).pop(const FreePriceResult(price: '0'));
           },
           child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: () {
-              response["price"]= price;
-            Navigator.of(context).pop(response);
+            Navigator.of(context).pop(FreePriceResult(price: price));
           },
           child: const Text('OK'),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_proyect/data/repositories/table_repository.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/ui/features/config/config_view.dart';
@@ -16,7 +17,9 @@ class ZoneView extends StatefulWidget {
 }
 
 class _ZoneViewState extends State<ZoneView> {
-  AppDatabase get database => context.read<DatabaseService>().database;
+  late final TableRepository _tableRepository = TableRepository(
+    context.read<DatabaseService>().database,
+  );
   List<Color?> stateList = [Colors.blue[100], Colors.yellow[100], Colors.green];
   List<RestTable> tableList = [];
   bool deleteTable = false;
@@ -28,15 +31,15 @@ class _ZoneViewState extends State<ZoneView> {
   }
 
   Future<void> getTables() async {
-    final result = await database.select(database.restTables).get();
+    final result = await _tableRepository.getTables();
     setState(() {
       tableList = result;
     });
   }
 
   Future<void> onDragEnd(RestTable table) async {
-    await database.update(database.restTables).replace(table);
-    final result = await database.select(database.restTables).get();
+    await _tableRepository.updateTable(table);
+    final result = await _tableRepository.getTables();
     setState(() {
       tableList = result;
     });
@@ -48,24 +51,13 @@ class _ZoneViewState extends State<ZoneView> {
       builder: (context) => NewTableForm(),
     );
     if (response != "") {
-      await database
-          .into(database.restTables)
-          .insert(
-            RestTablesCompanion.insert(
-              number: response,
-              top: 10,
-              left: 20,
-              state: 0,
-            ),
-          );
+      await _tableRepository.addTable(number: response);
     }
     getTables();
   }
 
   Future<void> onDeleteTable(RestTable table) async {
-    (database.delete(
-      database.restTables,
-    )..where((e) => e.id.isValue(table.id))).go();
+    await _tableRepository.deleteTable(table.id);
     getTables();
     setState(() {
       deleteTable = !deleteTable;

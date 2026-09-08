@@ -1,21 +1,22 @@
 import 'dart:async';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
-import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/data/repositories/order_repository.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
 import 'package:flutter_proyect/ui/core/widgets/edit_product.dart';
 import 'package:flutter_proyect/ui/core/widgets/keyboard.dart';
 import 'package:flutter_proyect/ui/core/widgets/product_list.dart';
 import 'package:flutter_proyect/ui/core/widgets/product_types.dart';
 import 'package:flutter_proyect/ui/core/widgets/products.dart';
+import 'package:flutter_proyect/ui/features/table/checkout.dart';
 import 'package:flutter_proyect/ui/features/table/forms/add_products_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/add_types_form.dart';
-import 'package:flutter_proyect/ui/features/table/checkout.dart';
-import 'package:flutter_proyect/data/repositories/db_updates.dart';
 import 'package:flutter_proyect/ui/features/table/forms/edit_products_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/edit_types_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/free_price_form.dart';
-import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
 import 'package:flutter_proyect/ui/features/table/split_table.dart';
 import 'package:provider/provider.dart';
 
@@ -28,6 +29,9 @@ class TableView extends StatefulWidget {
 }
 
 class _TableViewState extends State<TableView> {
+  late final _orderRepository = OrderRepository(
+    context.read<DatabaseService>().database,
+  );
   AppDatabase get database => context.read<DatabaseService>().database;
   List<OrderLine> orderLines = [];
   List<ProductTypesTableData> productTypes = [];
@@ -53,20 +57,9 @@ class _TableViewState extends State<TableView> {
   // ***GETTERS***
 
   Future<void> getLines() async {
-    final response =
-        await (database.select(database.orderLines).join([
-              drift.innerJoin(
-                database.orders,
-                database.orders.id.equalsExp(database.orderLines.order),
-              ),
-            ])..where(
-              database.orders.restTable.equals(widget.mesa.id) &
-                  database.orders.closedAt.isNull(),
-            ))
-            .get();
-    final result = response
-        .map((row) => row.readTable(database.orderLines))
-        .toList();
+    final List<OrderLine> result = await _orderRepository.getLines(
+      widget.mesa.id,
+    );
     setState(() {
       orderLines = result;
     });
@@ -180,11 +173,10 @@ class _TableViewState extends State<TableView> {
     if (priceText != "") {
       price = double.parse(priceText);
     }
-    final List<Order> orderFromTable =
-        await (database.select(database.orders)..where((e) {
-              return e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull();
-            }))
-            .get();
+    final List<Order> orderFromTable = await _orderRepository.getOrders(
+      widget.mesa.id,
+    );
+    // Add to product repo
     final bool isNewProduct = orderLines.every((e) {
       return (e.productName == producto.name && e.currentPrice != price) ||
           (e.productName != producto.name);
@@ -193,62 +185,38 @@ class _TableViewState extends State<TableView> {
       database.taxes,
     )..where((e) => e.id.isValue(producto.taxes))).getSingle();
     if (orderFromTable.isEmpty && isNewProduct) {
-      final Order newOrder = await database
-          .into(database.orders)
-          .insertReturning(
-            OrdersCompanion.insert(
-              totalPrice: price,
-              payedPrice: 0,
-              totalTaxes: taxRate.rate * price,
-              //TODO: Rename totalPriceWithTaxes to totalPriceWithoutTaxes
-              totalPriceWithTaxes: (1 - taxRate.rate) * price,
-              state: 0,
-              restTable: widget.mesa.id,
-            ),
-          );
-      await database
-          .into(database.orderLines)
-          .insertReturning(
-            OrderLinesCompanion.insert(
-              productName: producto.name,
-              currentPrice: price,
-              totalPrice: price,
-              taxRate: taxRate.rate,
-              taxPrice: taxRate.rate * price,
-              quantity: 1,
-              order: newOrder.id,
-            ),
-          );
+      final Order newOrder = await _orderRepository.addNewOrder(
+        widget.mesa.id,
+        price,
+        taxRate.rate,
+      );
+      await _orderRepository.addNewOrderLine(
+        newOrder.id,
+        producto.id,
+        price,
+        taxRate.rate,
+        producto.name,
+      );
     } else if (isNewProduct) {
-      await database
-          .into(database.orderLines)
-          .insertReturning(
-            OrderLinesCompanion.insert(
-              productName: producto.name,
-              currentPrice: price,
-              totalPrice: price,
-              taxRate: 0.2,
-              taxPrice: (price * 0.20),
-              quantity: 1,
-              order: orderFromTable.last.id,
-            ),
-          );
+      await _orderRepository.addNewOrderLine(
+        orderFromTable.last.id,
+        producto.id,
+        price,
+        taxRate.rate,
+        producto.name,
+      );
     } else {
-      OrderLine oldProduct = orderLines.firstWhere(
+      OrderLine product = orderLines.firstWhere(
         (e) => e.productName == producto.name && e.currentPrice == price,
       );
-      OrderLine newProduct = oldProduct.copyWith(
-        quantity: oldProduct.quantity + 1,
-        totalPrice: oldProduct.currentPrice + oldProduct.totalPrice,
-        taxPrice:
-            (oldProduct.totalPrice + oldProduct.currentPrice) *
-            oldProduct.taxRate,
+      await _orderRepository.updateOrderLineQuantity(
+        product,
+        product.quantity + 1,
       );
-      await database.update(database.orderLines).replace(newProduct);
     }
     keyboardKey.currentState?.onClearInput();
 
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
 
     await getLines();
   }
@@ -262,24 +230,24 @@ class _TableViewState extends State<TableView> {
     });
   }
 
+// TODO: Find why the checkout total price is not updating when changing the price of a product
   void onSaveEditProductList() async {
     final oldProduct = OrderLine.fromJson(_editedProduct);
-    final Map<String, dynamic> result = await showDialog(
+    final FreePriceResult? result = await showDialog<FreePriceResult>(
       context: context,
       builder: (context) => FreePriceForm(),
     );
 
-    if (result["price"] != "0") {
-      final newProduct = oldProduct.copyWith(
-        currentPrice: double.parse(result["price"]),
-        taxRate: oldProduct.taxRate,
-        taxPrice: (oldProduct.taxRate * double.parse(result["price"])),
-        totalPrice: double.parse(result["price"]) * oldProduct.quantity,
+    if (result?.price != "0") {
+      await _orderRepository.updateOrderLinePrice(
+        oldProduct,
+        double.parse(result!.price),
       );
-      await database.update(database.orderLines).replace(newProduct);
     }
-    await DbUpdates.updatedOrders(database, oldProduct.order);
+    await _orderRepository.updateOrders(oldProduct.order);
     getLines();
+    setState(() {
+    });
   }
 
   void onCancelEditProductList() {
@@ -288,61 +256,45 @@ class _TableViewState extends State<TableView> {
     });
   }
 
+  // TODO: Find better way to do this, i dont like how gets the index of the product
   void onRemoveProductFromList(Map<String, dynamic> removedProduct) async {
     final orderLine = orderLines.elementAt(
       orderLines.indexOf(OrderLine.fromJson(removedProduct)),
     );
-    await (database.delete(
-      database.orderLines,
-    )..where((e) => e.id.isValue(orderLine.id))).go();
+    await _orderRepository.deleteOrderLine(orderLine);
     getLines();
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders( widget.mesa.id);
     setState(() {
       _editedProduct = {};
     });
   }
 
+  // Remove map dependency and use OrderLine directly
   void onAddProductUnitFromList(Map<String, dynamic> addUnit) async {
-    await (database.update(
-      database.orderLines,
-    )..where((e) => e.id.isValue(addUnit["id"]))).write(
-      OrderLinesCompanion.custom(
-        quantity: database.orderLines.quantity + const drift.Constant(1),
-        totalPrice:
-            database.orderLines.totalPrice + database.orderLines.currentPrice,
-        taxPrice:
-            database.orderLines.taxPrice +
-            (database.orderLines.taxRate * database.orderLines.currentPrice),
-      ),
+    OrderLine orderLine = OrderLine.fromJson(addUnit);
+    await _orderRepository.updateOrderLineQuantity(
+      orderLine,
+      addUnit["quantity"] + 1,
     );
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders( widget.mesa.id);
     getLines();
   }
 
   void onRemoveProductUnitFromList(Map<String, dynamic> addUnit) async {
+    OrderLine orderLine = OrderLine.fromJson(addUnit);
     if (addUnit["quantity"] > 1) {
-      await (database.update(
-        database.orderLines,
-      )..where((e) => e.id.isValue(addUnit["id"]))).write(
-        OrderLinesCompanion.custom(
-          quantity: database.orderLines.quantity - const drift.Constant(1),
-          totalPrice:
-              database.orderLines.totalPrice - database.orderLines.currentPrice,
-          taxPrice:
-              database.orderLines.taxPrice -
-              (database.orderLines.taxRate * database.orderLines.currentPrice),
-        ),
+      await _orderRepository.updateOrderLineQuantity(
+        orderLine,
+        addUnit["quantity"] - 1,
       );
     } else {
-      await (database.delete(
-        database.orderLines,
-      )..where((e) => e.id.isValue(addUnit["id"]))).go();
+      await _orderRepository.deleteOrderLine(orderLine);
       setState(() {
         _editedProduct = {};
       });
     }
 
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
     getLines();
   }
 
@@ -355,13 +307,13 @@ class _TableViewState extends State<TableView> {
   }
 
   void onCheckout() async {
-    DbUpdates.updatedOrders(database, widget.mesa.id);
+    _orderRepository.updateOrders(widget.mesa.id);
     final List<Order> result = await showDialog(
       context: context,
       builder: (context) => Checkout(mesaID: widget.mesa.id),
     );
     getLines();
-    DbUpdates.updatedOrders(database, widget.mesa.id);
+    _orderRepository.updateOrders(widget.mesa.id);
     if (!mounted) return;
     if (result.isEmpty) {
       Navigator.of(context).pop();
@@ -369,14 +321,14 @@ class _TableViewState extends State<TableView> {
   }
 
   void onSplitTable() async {
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
     if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) => SplitTable(mesa: widget.mesa),
     );
     getLines();
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
   }
 
   void onDeleteTable() async {
@@ -395,7 +347,7 @@ class _TableViewState extends State<TableView> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(0);
+                  Navigator.of(context).pop(false);
                 },
                 child: Text(
                   'No',
@@ -404,7 +356,7 @@ class _TableViewState extends State<TableView> {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(1);
+                  Navigator.of(context).pop(true);
                 },
                 child: Text(
                   'Si',
@@ -415,12 +367,9 @@ class _TableViewState extends State<TableView> {
           ),
         ) ??
         0;
-    if (result == 1 && context.mounted) {
-      await (database.delete(database.orderLines)..where(
-            (e) => e.id.isIn(orderLines.map((line) => line.id).toList()),
-          ))
-          .go();
-      await DbUpdates.updatedOrders(database, widget.mesa.id);
+    if (result && context.mounted) {
+      await _orderRepository.deleteOrderLinesBatch(orderLines);
+      await _orderRepository.updateOrders(widget.mesa.id);
       if (!mounted) return;
       Navigator.of(context).pop();
     }
