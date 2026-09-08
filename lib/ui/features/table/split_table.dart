@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
-import 'package:flutter_proyect/data/repositories/db_updates.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
@@ -148,16 +147,16 @@ class _SplitTableState extends State<SplitTable> {
   }
 
   void onCheckout() async {
-    await DbUpdates.updatedOrders(database, 99);
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(99);
+    await _orderRepository.updateOrders(widget.mesa.id);
     RestTable mesa = RestTable(id: 99, state: 0, left: 0, top: 0, number: "0");
     if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) => TableView(mesa: mesa),
     );
-    await DbUpdates.updatedOrders(database, 99);
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(99);
+    await _orderRepository.updateOrders(widget.mesa.id);
     final Order response = await (database.select(
       database.orders,
     )..whereSamePrimaryKey(splitTableOrder)).getSingle();
