@@ -7,6 +7,7 @@ import 'package:flutter_proyect/ui/features/config/config_view.dart';
 import 'package:flutter_proyect/ui/features/table/table_view.dart';
 import 'package:flutter_proyect/ui/features/zone/new_table_form.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
+import 'package:flutter_proyect/ui/features/zone/view_models/zone_view_model.dart';
 import 'package:provider/provider.dart';
 
 class ZoneView extends StatefulWidget {
@@ -17,32 +18,21 @@ class ZoneView extends StatefulWidget {
 }
 
 class _ZoneViewState extends State<ZoneView> {
-  late final TableRepository _tableRepository = TableRepository(
-    context.read<DatabaseService>().database,
+  late final ZoneViewModel _zoneViewModel = ZoneViewModel(
+    TableRepository(context.read<DatabaseService>().database),
   );
   List<Color?> stateList = [Colors.blue[100], Colors.yellow[100], Colors.green];
-  List<RestTable> tableList = [];
-  bool deleteTable = false;
   bool showSnackBar = false;
   @override
   void initState() {
     super.initState();
-    getTables();
+    _zoneViewModel.loadTables();
   }
 
-  Future<void> getTables() async {
-    final result = await _tableRepository.getTables();
-    setState(() {
-      tableList = result;
-    });
-  }
-
-  Future<void> onDragEnd(RestTable table) async {
-    await _tableRepository.updateTable(table);
-    final result = await _tableRepository.getTables();
-    setState(() {
-      tableList = result;
-    });
+  @override
+  void dispose() {
+    _zoneViewModel.dispose();
+    super.dispose();
   }
 
   Future<void> onAddTable() async {
@@ -51,17 +41,8 @@ class _ZoneViewState extends State<ZoneView> {
       builder: (context) => NewTableForm(),
     );
     if (response != "") {
-      await _tableRepository.addTable(number: response);
+      await _zoneViewModel.addTable(response);
     }
-    getTables();
-  }
-
-  Future<void> onDeleteTable(RestTable table) async {
-    await _tableRepository.deleteTable(table.id);
-    getTables();
-    setState(() {
-      deleteTable = !deleteTable;
-    });
   }
 
   Future<void> onExit() async {
@@ -110,7 +91,7 @@ class _ZoneViewState extends State<ZoneView> {
       context,
       MaterialPageRoute(builder: (context) => TableView(mesa: mesa)),
     );
-    getTables();
+    _zoneViewModel.loadTables();
   }
 
   void onPrintConfig() async {
@@ -118,7 +99,7 @@ class _ZoneViewState extends State<ZoneView> {
       context,
       MaterialPageRoute(builder: (context) => ConfigView()),
     );
-    getTables();
+    _zoneViewModel.loadTables();
   }
 
   void onShowSnackBar() {
@@ -140,175 +121,186 @@ class _ZoneViewState extends State<ZoneView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          Container(
-            color: Theme.of(context).primaryColor,
-            padding: EdgeInsets.all(8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {
-                      if (!deleteTable) {
-                        onShowSnackBar();
-                        setState(() {
-                          showSnackBar = true;
-                          deleteTable = true;
-                        });
-                      } else {
-                        hideSnackBar();
-                        setState(() {
-                          showSnackBar = false;
-                          deleteTable = false;
-                        });
-                      }
-                    },
-                    child: Text(
-                      "Eliminar Mesa",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () async {
-                      hideSnackBar();
-                      setState(() {
-                        deleteTable = false;
-                      });
-                      await onAddTable();
-                    },
-                    child: Text(
-                      "Agregar Mesa",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () => onPrintConfig(),
-                    child: Text(
-                      "Config",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () {},
-                    child: Text(
-                      "Caja",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  child: ElevatedButton(
-                    style: ProyectStyles.buttonStyles(context),
-                    onPressed: () async {
-                      await onExit();
-                    },
-                    child: Text(
-                      "Salir",
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Stack(
-              children: [
-                ...tableList.map((index) {
-                  return Positioned(
-                    top: index.top,
-                    left: index.left,
-                    child: LongPressDraggable(
-                      onDragEnd: (details) {
-                        final newPositionTable = index.copyWith(
-                          top: ((details.offset.dy - 56) / 100).round() * 100,
-                          left: (details.offset.dx / 30).round() * 30,
-                        );
-                        onDragEnd(newPositionTable);
-                      },
-                      onDragStarted: () {},
-                      feedback: Container(
-                        width: 100,
-                        height: 100,
-                        margin: EdgeInsets.all(5),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: stateList[index.state],
-                            alignment: AlignmentGeometry.center,
-                            side: BorderSide(color: Colors.black),
-                            padding: EdgeInsets.all(14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(1),
-                            ),
-                          ),
-                          onPressed: () {},
-                          child: Text(
-                            index.number,
-                            style: Theme.of(context).textTheme.titleMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        margin: EdgeInsets.all(5),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: stateList[index.state],
-                            alignment: AlignmentGeometry.center,
-                            side: BorderSide(color: Colors.black),
-                            padding: EdgeInsets.all(14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(1),
-                            ),
-                          ),
-                          onPressed: () async {
-                            if (deleteTable) {
-                              hideSnackBar();
-                              await onDeleteTable(index);
-                            } else {
-                              onTablePressed(index);
-                            }
-                          },
-                          child: Text(
-                            index.number,
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.center,
-                          ),
+    return ListenableBuilder(
+      listenable: _zoneViewModel,
+      builder: (context, child) {
+        return Scaffold(
+          body: Column(
+            children: [
+              Container(
+                color: Theme.of(context).primaryColor,
+                padding: EdgeInsets.all(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      child: ElevatedButton(
+                        style: ProyectStyles.buttonStyles(context),
+                        onPressed: () {
+                          if (_zoneViewModel.deleteMode == false) {
+                            onShowSnackBar();
+                            _zoneViewModel.toggleDeleteMode();
+                            setState(() {
+                              showSnackBar = true;
+                            });
+                          } else {
+                            hideSnackBar();
+                            _zoneViewModel.toggleDeleteMode();
+                            setState(() {
+                              showSnackBar = false;
+                            });
+                          }
+                        },
+                        child: Text(
+                          "Eliminar Mesa",
+                          style: Theme.of(context).textTheme.titleLarge,
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                  );
-                }),
-              ],
-            ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      child: ElevatedButton(
+                        style: ProyectStyles.buttonStyles(context),
+                        onPressed: () async {
+                          hideSnackBar();
+                          if (_zoneViewModel.deleteMode == true) {
+                            _zoneViewModel.toggleDeleteMode();
+                          }
+                          await onAddTable();
+                        },
+                        child: Text(
+                          "Agregar Mesa",
+                          style: Theme.of(context).textTheme.titleLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      child: ElevatedButton(
+                        style: ProyectStyles.buttonStyles(context),
+                        onPressed: () => onPrintConfig(),
+                        child: Text(
+                          "Config",
+                          style: Theme.of(context).textTheme.titleLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      child: ElevatedButton(
+                        style: ProyectStyles.buttonStyles(context),
+                        onPressed: () {},
+                        child: Text(
+                          "Caja",
+                          style: Theme.of(context).textTheme.titleLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      child: ElevatedButton(
+                        style: ProyectStyles.buttonStyles(context),
+                        onPressed: () async {
+                          await onExit();
+                        },
+                        child: Text(
+                          "Salir",
+                          style: Theme.of(context).textTheme.titleLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: _zoneViewModel.isLoading && _zoneViewModel.tables.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : Stack(
+                        children: [
+                          ..._zoneViewModel.tables.map((index) {
+                            return Positioned(
+                              top: index.top,
+                              left: index.left,
+                              child: LongPressDraggable(
+                                onDragEnd: (details) {
+                                  _zoneViewModel.moveTable(
+                                    index,
+                                    details.offset.dx,
+                                    details.offset.dy,
+                                  );
+                                },
+                                onDragStarted: () {},
+                                feedback: Container(
+                                  width: 100,
+                                  height: 100,
+                                  margin: EdgeInsets.all(5),
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: stateList[index.state],
+                                      alignment: AlignmentGeometry.center,
+                                      side: BorderSide(color: Colors.black),
+                                      padding: EdgeInsets.all(14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(1),
+                                      ),
+                                    ),
+                                    onPressed: () {},
+                                    child: Text(
+                                      index.number,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                child: Container(
+                                  width: 100,
+                                  height: 100,
+                                  margin: EdgeInsets.all(5),
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: stateList[index.state],
+                                      alignment: AlignmentGeometry.center,
+                                      side: BorderSide(color: Colors.black),
+                                      padding: EdgeInsets.all(14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(1),
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      if (_zoneViewModel.deleteMode) {
+                                        hideSnackBar();
+                                        _zoneViewModel.deleteTable(index.id);
+                                      } else {
+                                        onTablePressed(index);
+                                      }
+                                    },
+                                    child: Text(
+                                      index.number,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
