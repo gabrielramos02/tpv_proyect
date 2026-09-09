@@ -8,6 +8,7 @@ import 'package:flutter_proyect/data/repositories/products_repository.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
+import 'package:flutter_proyect/domain/constants.dart';
 import 'package:flutter_proyect/ui/core/widgets/edit_product.dart';
 import 'package:flutter_proyect/ui/core/widgets/keyboard.dart';
 import 'package:flutter_proyect/ui/core/widgets/product_list.dart';
@@ -41,7 +42,7 @@ class _TableViewState extends State<TableView> {
   List<OrderLine> orderLines = [];
   List<ProductTypesTableData> productTypes = [];
   List<ProductsClassData> products = [];
-  int _selectedType = 99;
+  int _selectedType = allProductTypesId;
   String priceText = "";
   OrderLine? _editedProduct;
   final GlobalKey<KeyboardState> keyboardKey = GlobalKey<KeyboardState>();
@@ -429,7 +430,7 @@ class _TableViewState extends State<TableView> {
                           ),
                         ),
                         Visibility(
-                          visible: _selectedType != 99,
+                          visible: _selectedType != allProductTypesId,
                           child: Flexible(
                             child: Products(
                               productsList: products

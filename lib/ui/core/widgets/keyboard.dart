@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/domain/calculate_from_expression.dart';
+import 'package:flutter_proyect/domain/constants.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
 
 class Keyboard extends StatefulWidget {
@@ -421,7 +422,7 @@ class KeyboardState extends State<Keyboard> {
                                 );
                                 widget.onEnter(
                                   ProductsClassData(
-                                    id: 99,
+                                    id: variosProductId,
                                     name: "Varios",
                                     price: double.parse(inputController.text),
                                     color: "",

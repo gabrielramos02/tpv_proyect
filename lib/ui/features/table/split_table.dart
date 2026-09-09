@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/domain/constants.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
 import 'package:flutter_proyect/ui/features/table/table_view.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +47,7 @@ class _SplitTableState extends State<SplitTable> {
 
   Future<void> newOrder() async {
     Order newSplitTableOrder = await _orderRepository.addNewOrder(
-      99,
+      phantomTableId,
       0,
       leftList.isNotEmpty ? leftList[0].taxRate : 0,
     );
@@ -146,15 +147,16 @@ class _SplitTableState extends State<SplitTable> {
   }
 
   void onCheckout() async {
-    await _orderRepository.updateOrders(99);
+    await _orderRepository.updateOrders(phantomTableId);
     await _orderRepository.updateOrders(widget.mesa.id);
-    RestTable mesa = RestTable(id: 99, state: 0, left: 0, top: 0, number: "0");
+    RestTable mesa =
+        RestTable(id: phantomTableId, state: 0, left: 0, top: 0, number: "0");
     if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) => TableView(mesa: mesa),
     );
-    await _orderRepository.updateOrders(99);
+    await _orderRepository.updateOrders(phantomTableId);
     await _orderRepository.updateOrders(widget.mesa.id);
     final Order? response = await _orderRepository.getOrderById(widget.mesa.id);
     if (response?.closedAt != null) {

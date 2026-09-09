@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/domain/constants.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
 
 class ProductTypes extends StatelessWidget {
@@ -46,7 +47,7 @@ class ProductTypes extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  onSelectType(99);
+                  onSelectType(allProductTypesId);
                 },
                 child: GridView.count(
                   crossAxisCount: 6,
