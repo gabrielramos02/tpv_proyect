@@ -49,7 +49,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
       price: widget.product.price,
       type: widget.product.type,
       taxes: widget.product.taxes,
-      color: widget.product.color
+      color: widget.product.color,
     );
     getTypes();
     getTaxes();

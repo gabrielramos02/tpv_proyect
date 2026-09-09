@@ -35,6 +35,13 @@ class OrderRepository {
     return response;
   }
 
+  Future<Order?> getOrderById(int orderId) async {
+    final response = await (_db.select(
+      _db.orders,
+    )..where((e) => e.id.equals(orderId))).getSingleOrNull();
+    return response;
+  }
+
   Future<List<OrderLine>> getOrderLines(int orderId) async {
     final response = await (_db.select(
       _db.orderLines,

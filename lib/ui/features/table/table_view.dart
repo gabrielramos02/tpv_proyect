@@ -134,21 +134,18 @@ class _TableViewState extends State<TableView> {
         );
 
     if (result?.isDeleted == false) {
-      await database
-          .update(database.productsClass)
-          .replace(
-            ProductsClassData(
-              id: product.id,
-              order: result?.order ?? product.order,
-              name: result?.name ?? product.name,
-              price: result?.price ?? product.price,
-              type: result?.type ?? product.type,
-              taxes: result?.taxes ?? product.taxes,
-              color: result?.color ?? product.color,
-            ),
-          );
+      await _productRepository.updateProduct(
+        id: product.id,
+        name: result?.name ?? product.name,
+        price: result?.price ?? product.price,
+        type: result?.type ?? product.type,
+        taxes: result?.taxes ?? product.taxes,
+        order: result?.order ?? product.order,
+        color: result?.color ?? product.color,
+      );
       getProducts();
     } else if (result?.isDeleted == true) {
+      await _productRepository.deleteProduct(product.id);
       await (database.delete(
         database.productsClass,
       )..where((e) => e.id.isValue(product.id))).go();

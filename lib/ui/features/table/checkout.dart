@@ -50,9 +50,8 @@ class _CheckoutState extends State<Checkout> {
       widget.mesaID,
     );
 
-    final List<Payment> paymentsFromOrder = await _paymentRepository.getPayments(
-      ordersFromTable.first.id,
-    );
+    final List<Payment> paymentsFromOrder = await _paymentRepository
+        .getPayments(ordersFromTable.first.id);
 
     double price = ordersFromTable.fold(0, (prev, e) => prev + e.totalPrice);
 

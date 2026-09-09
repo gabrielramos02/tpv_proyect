@@ -19,7 +19,9 @@ void main() {
   });
 
   Future<int> insertOrder() async {
-    return db.into(db.orders).insert(
+    return db
+        .into(db.orders)
+        .insert(
           OrdersCompanion.insert(
             totalPrice: 0,
             payedPrice: 0,
@@ -34,22 +36,25 @@ void main() {
   Future<List<Payment>> getPayments() => db.select(db.payments).get();
 
   group('PaymentRepository', () {
-    test('addPayment inserts a payment with amount, method and timestamp', () async {
-      final orderId = await insertOrder();
+    test(
+      'addPayment inserts a payment with amount, method and timestamp',
+      () async {
+        final orderId = await insertOrder();
 
-      await repository.addPayment(
-        orderId: orderId,
-        amount: 25.5,
-        method: PaymentMethod.cash,
-      );
+        await repository.addPayment(
+          orderId: orderId,
+          amount: 25.5,
+          method: PaymentMethod.cash,
+        );
 
-      final payments = await getPayments();
-      expect(payments, hasLength(1));
-      expect(payments.single.order, orderId);
-      expect(payments.single.payedAmount, 25.5);
-      expect(payments.single.paymentMethod, 'Efectivo');
-      expect(payments.single.paymentDateTime, isNotNull);
-    });
+        final payments = await getPayments();
+        expect(payments, hasLength(1));
+        expect(payments.single.order, orderId);
+        expect(payments.single.payedAmount, 25.5);
+        expect(payments.single.paymentMethod, 'Efectivo');
+        expect(payments.single.paymentDateTime, isNotNull);
+      },
+    );
 
     test('addPayment stores the value of each payment method', () async {
       final orderId = await insertOrder();
@@ -102,10 +107,7 @@ void main() {
 
       final payments = await getPayments();
       expect(payments, hasLength(2));
-      expect(
-        payments.where((p) => p.order == orderId).single.payedAmount,
-        10,
-      );
+      expect(payments.where((p) => p.order == orderId).single.payedAmount, 10);
       expect(
         payments.where((p) => p.order == otherOrderId).single.payedAmount,
         20,

@@ -81,10 +81,10 @@ class ConfigView extends StatelessWidget {
             title: const Text('Editar Impresora'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-                await showDialog(
-                  context: context,
-                  builder: (context) => const PrintConfigView(),
-                );
+              await showDialog(
+                context: context,
+                builder: (context) => const PrintConfigView(),
+              );
             },
           ),
           ListTile(

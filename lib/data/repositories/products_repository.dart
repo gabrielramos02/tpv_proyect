@@ -41,7 +41,7 @@ class ProductRepository {
     return _db.select(_db.taxes).get();
   }
 
-Future<void> addProduct({
+  Future<void> addProduct({
     required String name,
     required double price,
     required int type,
@@ -63,9 +63,36 @@ Future<void> addProduct({
         );
   }
 
-  Future<Taxe> getTaxById(int id) {
-    return (_db.select(_db.taxes)..where((tbl) => tbl.id.equals(id)))
-        .getSingle();
+  Future<void> updateProduct({
+    required int id,
+    required String name,
+    required double price,
+    required int type,
+    required int taxes,
+    required int order,
+    required String color,
+  }) {
+    return (_db.update(
+      _db.productsClass,
+    )..where((e) => e.id.isValue(id))).write(
+      ProductsClassCompanion(
+        name: drift.Value(name),
+        price: drift.Value(price),
+        type: drift.Value(type),
+        taxes: drift.Value(taxes),
+        order: drift.Value(order),
+        color: drift.Value(color),
+      ),
+    );
   }
 
+  Future<void> deleteProduct(int id) {
+    return (_db.delete(_db.productsClass)..where((e) => e.id.isValue(id))).go();
+  }
+
+  Future<Taxe> getTaxById(int id) {
+    return (_db.select(
+      _db.taxes,
+    )..where((tbl) => tbl.id.equals(id))).getSingle();
+  }
 }

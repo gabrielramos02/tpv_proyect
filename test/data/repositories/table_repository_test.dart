@@ -31,12 +31,7 @@ void main() {
     });
 
     test('addTable honors custom position and state', () async {
-      await repository.addTable(
-        number: '7',
-        top: 50,
-        left: 60,
-        state: 1,
-      );
+      await repository.addTable(number: '7', top: 50, left: 60, state: 1);
 
       final tables = await repository.getTables();
       expect(tables.first.top, 50);

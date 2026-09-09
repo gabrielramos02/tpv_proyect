@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 
-class EditTypesResult {
-
-    }
+class EditTypesResult {}
 
 class EditTypesForm extends StatefulWidget {
   const EditTypesForm({super.key, required this.product});

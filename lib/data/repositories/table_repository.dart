@@ -19,7 +19,9 @@ class TableRepository {
     double left = 20,
     int state = 0,
   }) {
-    return _db.into(_db.restTables).insert(
+    return _db
+        .into(_db.restTables)
+        .insert(
           RestTablesCompanion.insert(
             number: number,
             top: top,
@@ -30,8 +32,6 @@ class TableRepository {
   }
 
   Future<void> deleteTable(int id) {
-    return (_db.delete(_db.restTables)
-          ..where((e) => e.id.isValue(id)))
-        .go();
+    return (_db.delete(_db.restTables)..where((e) => e.id.isValue(id))).go();
   }
 }

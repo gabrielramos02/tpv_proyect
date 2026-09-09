@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
@@ -99,13 +98,13 @@ class _SplitTableState extends State<SplitTable> {
         orderOnIndex.quantity + 1,
       );
     } else {
-        await _orderRepository.addNewOrderLine(
-            splitTableOrder.id,
-            pressed.id,
-            pressed.currentPrice,
-            pressed.taxRate,
-            pressed.productName,
-            );
+      await _orderRepository.addNewOrderLine(
+        splitTableOrder.id,
+        pressed.id,
+        pressed.currentPrice,
+        pressed.taxRate,
+        pressed.productName,
+      );
     }
     getLeftLines();
     getRightLines();
@@ -114,12 +113,12 @@ class _SplitTableState extends State<SplitTable> {
   void onMoveLeft(OrderLine pressed) async {
     //Changes on rightLine
     if (pressed.quantity > 1) {
-        await _orderRepository.updateOrderLineQuantity(
+      await _orderRepository.updateOrderLineQuantity(
         pressed,
         pressed.quantity - 1,
-        );
+      );
     } else {
-        await _orderRepository.deleteOrderLine(pressed);
+      await _orderRepository.deleteOrderLine(pressed);
     }
     //Changes on leftLine
     int indexLeftLine = leftList.indexWhere(
@@ -134,13 +133,13 @@ class _SplitTableState extends State<SplitTable> {
         orderOnIndex.quantity + 1,
       );
     } else {
-        await _orderRepository.addNewOrderLine(
-            leftLineOrder,
-            pressed.id,
-            pressed.currentPrice,
-            pressed.taxRate,
-            pressed.productName,
-          );
+      await _orderRepository.addNewOrderLine(
+        leftLineOrder,
+        pressed.id,
+        pressed.currentPrice,
+        pressed.taxRate,
+        pressed.productName,
+      );
     }
     getLeftLines();
     getRightLines();
@@ -157,10 +156,8 @@ class _SplitTableState extends State<SplitTable> {
     );
     await _orderRepository.updateOrders(99);
     await _orderRepository.updateOrders(widget.mesa.id);
-    final Order response = await (database.select(
-      database.orders,
-    )..whereSamePrimaryKey(splitTableOrder)).getSingle();
-    if (response.closedAt != null) {
+    final Order? response = await _orderRepository.getOrderById(widget.mesa.id);
+    if (response?.closedAt != null) {
       await newOrder();
     }
     getRightLines();

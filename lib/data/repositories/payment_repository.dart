@@ -28,7 +28,7 @@ class PaymentRepository {
             order: orderId,
             paymentMethod: method.value,
             payedAmount: amount,
-            paymentDateTime: drift.Value(DateTime.now())
+            paymentDateTime: drift.Value(DateTime.now()),
           ),
         );
   }

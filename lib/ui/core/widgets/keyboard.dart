@@ -39,11 +39,12 @@ class KeyboardState extends State<Keyboard> {
     super.dispose();
     inputController.dispose();
   }
-  void onClearInput(){
-          setState(() {
-                      inputController.text = "";
-                    });
-      }
+
+  void onClearInput() {
+    setState(() {
+      inputController.text = "";
+    });
+  }
 
   void onTextChanged() {
     widget.onChangePriceText(inputController.text);

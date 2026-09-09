@@ -39,9 +39,10 @@ class Orders extends Table {
   RealColumn get payedPrice => real()();
   RealColumn get totalTaxes => real()();
   RealColumn get totalPriceWithTaxes => real()();
-  IntColumn get state => integer()();//TODO: borrar column
+  IntColumn get state => integer()(); //TODO: borrar column
   IntColumn get restTable => integer().references(RestTables, #id)();
 }
+
 class OrderLines extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get productName => text()();
@@ -52,6 +53,7 @@ class OrderLines extends Table {
   IntColumn get quantity => integer()();
   IntColumn get order => integer().references(Orders, #id)();
 }
+
 class Payments extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get paymentMethod => text()();
@@ -59,8 +61,9 @@ class Payments extends Table {
   DateTimeColumn get paymentDateTime => dateTime().nullable()();
   IntColumn get order => integer().references(Orders, #id)();
 }
+
 class Tickets extends Table {
   IntColumn get id => integer().autoIncrement()();
   RealColumn get totalPrice => real()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-    }
+}
