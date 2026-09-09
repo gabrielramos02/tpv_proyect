@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_proyect/core/logger.dart';
 import 'package:flutter_proyect/data/repositories/order_repository.dart';
 import 'package:flutter_proyect/data/repositories/products_repository.dart';
+import 'package:flutter_proyect/data/repositories/table_repository.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
@@ -36,6 +37,9 @@ class _TableViewState extends State<TableView> {
     context.read<DatabaseService>().database,
   );
   late final _productRepository = ProductRepository(
+    context.read<DatabaseService>().database,
+  );
+  late final _tableRepository = TableRepository(
     context.read<DatabaseService>().database,
   );
   AppDatabase get database => context.read<DatabaseService>().database;
@@ -147,9 +151,6 @@ class _TableViewState extends State<TableView> {
       getProducts();
     } else if (result?.isDeleted == true) {
       await _productRepository.deleteProduct(product.id);
-      await (database.delete(
-        database.productsClass,
-      )..where((e) => e.id.isValue(product.id))).go();
       getProducts();
     }
   }
@@ -381,7 +382,7 @@ class _TableViewState extends State<TableView> {
       RestTablesCompanion(state: drift.Value(2)),
     );
 
-    await database.update(database.restTables).replace(mesa);
+    await _tableRepository.updateTable(mesa);
   }
 
   @override
