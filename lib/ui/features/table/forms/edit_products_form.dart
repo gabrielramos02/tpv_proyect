@@ -1,7 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/data/repositories/products_repository.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:provider/provider.dart';
+
+class EditProductsFormResponse {
+  final bool isDeleted;
+  String? name;
+  double? price;
+  int? type;
+  int? taxes;
+  int? order;
+  String? color;
+  EditProductsFormResponse({
+    required this.isDeleted,
+    this.name,
+    this.price,
+    this.type,
+    this.taxes,
+    this.order,
+    this.color,
+  });
+}
 
 class EditProductsForm extends StatefulWidget {
   const EditProductsForm({super.key, required this.product});
@@ -12,28 +32,38 @@ class EditProductsForm extends StatefulWidget {
 }
 
 class _EditProductsFormState extends State<EditProductsForm> {
-  AppDatabase get database => context.read<DatabaseService>().database;
+  late final ProductRepository _productRepository = ProductRepository(
+    context.read<DatabaseService>().database,
+  );
   List<ProductTypesTableData> productTypes = [];
   List<Taxe> taxes = [];
-  Map<String, dynamic> response = {};
+  late EditProductsFormResponse response;
   @override
   @override
   void initState() {
     super.initState();
-    response = widget.product.toJson();
+    response = EditProductsFormResponse(
+      isDeleted: false,
+      name: widget.product.name,
+      order: widget.product.order,
+      price: widget.product.price,
+      type: widget.product.type,
+      taxes: widget.product.taxes,
+      color: widget.product.color
+    );
     getTypes();
     getTaxes();
   }
 
   Future<void> getTypes() async {
-    final response = await database.select(database.productTypesTable).get();
+    final response = await _productRepository.getProductTypes();
     setState(() {
       productTypes = response;
     });
   }
 
   Future<void> getTaxes() async {
-    final response = await database.select(database.taxes).get();
+    final response = await _productRepository.getTaxes();
     setState(() {
       taxes = response;
     });
@@ -59,7 +89,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
                 labelStyle: Theme.of(context).textTheme.bodyLarge,
               ),
               onChanged: (text) {
-                response["name"] = text;
+                response.name = text;
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -75,7 +105,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
                 labelStyle: Theme.of(context).textTheme.bodyLarge,
               ),
               onChanged: (text) {
-                response["price"] = double.parse(text);
+                response.price = double.parse(text);
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -95,7 +125,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
                 );
               }).toList(),
               onChanged: (e) {
-                response["type"] = e;
+                response.type = e;
               },
             ),
             DropdownButtonFormField(
@@ -109,7 +139,7 @@ class _EditProductsFormState extends State<EditProductsForm> {
                 );
               }).toList(),
               onChanged: (e) {
-                response["taxes"] = e;
+                response.taxes = e;
               },
             ),
           ],
@@ -118,7 +148,9 @@ class _EditProductsFormState extends State<EditProductsForm> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop({"": ""});
+            Navigator.of(
+              context,
+            ).pop(EditProductsFormResponse(isDeleted: true));
           },
           child: const Text('Eliminar'),
         ),

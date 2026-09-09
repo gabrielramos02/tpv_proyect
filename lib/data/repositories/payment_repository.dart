@@ -32,4 +32,11 @@ class PaymentRepository {
           ),
         );
   }
+
+  Future<List<Payment>> getPayments(int orderId) async {
+    final response = await (_db.select(
+      _db.payments,
+    )..where((e) => e.order.equals(orderId))).get();
+    return response;
+  }
 }

@@ -1,7 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/data/repositories/products_repository.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:provider/provider.dart';
+
+class AddProductsFormResponse {
+  final bool isCancelled;
+  String? name;
+  double? price;
+  int? type;
+  int? taxes;
+  int? order;
+  String? color;
+  AddProductsFormResponse({
+    required this.isCancelled,
+    this.name,
+    this.price,
+    this.type,
+    this.taxes,
+    this.order,
+    this.color,
+  });
+}
 
 class AddProductsForm extends StatefulWidget {
   const AddProductsForm({super.key, required this.selectedFamily});
@@ -12,14 +32,14 @@ class AddProductsForm extends StatefulWidget {
 }
 
 class _AddProductsFormState extends State<AddProductsForm> {
-  AppDatabase get database => context.read<DatabaseService>().database;
-  Map<String, dynamic> response = {};
+  late final _productRepository = ProductRepository(
+    context.read<DatabaseService>().database,
+  );
+  late AddProductsFormResponse response = AddProductsFormResponse(
+    isCancelled: false,
+  );
   List<ProductTypesTableData> productTypes = [];
   List<Taxe> taxes = [];
-  String name = "";
-  String price = "";
-  int? type;
-  int? taxRate;
   @override
   void initState() {
     super.initState();
@@ -28,14 +48,14 @@ class _AddProductsFormState extends State<AddProductsForm> {
   }
 
   Future<void> getTypes() async {
-    final response = await database.select(database.productTypesTable).get();
+    final response = await _productRepository.getProductTypes();
     setState(() {
       productTypes = response;
     });
   }
 
   Future<void> getTaxes() async {
-    final response = await database.select(database.taxes).get();
+    final response = await _productRepository.getTaxes();
     setState(() {
       taxes = response;
     });
@@ -47,106 +67,108 @@ class _AddProductsFormState extends State<AddProductsForm> {
     return AlertDialog(
       actionsAlignment: MainAxisAlignment.spaceBetween,
       title: Text('Producto'),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: "Nombre",
-                labelStyle: Theme.of(context).textTheme.bodyLarge,
+      content: productTypes.isEmpty || taxes.isEmpty
+          ? const SizedBox(
+              width: 200,
+              height: 160,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Nombre",
+                      labelStyle: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    onChanged: (text) {
+                      response.name = text;
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Ingresa un nombre';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Precio",
+                      labelStyle: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    onChanged: (text) {
+                      response.price = double.parse(text);
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Ingresa un precio';
+                      }
+                      return null;
+                    },
+                  ),
+                  DropdownButtonFormField(
+                    hint: Text("Familia"),
+                    initialValue:
+                        productTypes.any((t) => t.id == widget.selectedFamily)
+                        ? widget.selectedFamily
+                        : null,
+                    isExpanded: true,
+                    items: productTypes.map((index) {
+                      return DropdownMenuItem(
+                        value: index.id,
+                        child: Text(index.name),
+                      );
+                    }).toList(),
+                    onChanged: (e) {
+                      response.type = e;
+                    },
+                    validator: (value) {
+                      if (value == null || value == 0) {
+                        return 'Selecciona la familia';
+                      }
+                      return null;
+                    },
+                  ),
+                  DropdownButtonFormField(
+                    isExpanded: true,
+                    hint: Text("Selecciona el tipo de taxes"),
+                    initialValue: taxes[0].id,
+                    items: taxes.map((index) {
+                      return DropdownMenuItem(
+                        value: index.id,
+                        child: Text(index.name),
+                      );
+                    }).toList(),
+                    onChanged: (e) {
+                      response.taxes = e;
+                    },
+                    validator: (value) {
+                      if (value == null || value == 0) {
+                        return 'Selecciona un tipo de impuesto';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
-              onChanged: (text) {
-                name = text;
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa un nombre';
-                }
-                return null;
-              },
             ),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: "Precio",
-                labelStyle: Theme.of(context).textTheme.bodyLarge,
-              ),
-              onChanged: (text) {
-                price = text;
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa un precio';
-                }
-                return null;
-              },
-            ),
-            DropdownButtonFormField(
-              hint: Text("Familia"),
-              initialValue: widget.selectedFamily,
-              isExpanded: true,
-              items: productTypes.map((index) {
-                return DropdownMenuItem(
-                  value: index.id,
-                  child: Text(index.name),
-                );
-              }).toList(),
-              onChanged: (e) {
-                type = e;
-              },
-              validator: (value) {
-                if (value == null || value == 0) {
-                  return 'Selecciona la familia';
-                }
-                return null;
-              },
-            ),
-            DropdownButtonFormField(
-              isExpanded: true,
-              hint: Text("Selecciona el tipo de taxes"),
-              initialValue: taxes[0].id,
-              items: taxes.map((index) {
-                return DropdownMenuItem(
-                  value: index.id,
-                  child: Text(index.name),
-                );
-              }).toList(),
-              onChanged: (e) {
-                taxRate = e;
-              },
-              validator: (value) {
-                if (value == null || value == 0) {
-                  return 'Selecciona un tipo de impuesto';
-                }
-                return null;
-              },
-            ),
-          ],
-        ),
-      ),
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop({});
+            Navigator.of(
+              context,
+            ).pop(AddProductsFormResponse(isCancelled: true));
           },
           child: const Text('Cancelar'),
         ),
         TextButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              type ??= widget.selectedFamily;
-              taxRate ??= taxes[0].id;
-              final ProductsClassCompanion response =
-                  ProductsClassCompanion.insert(
-                    name: name,
-                    price: double.parse(price),
-                    color: "",
-                    order: 0,
-                    type: type as int,
-                    taxes: taxRate as int,
-                  );
+              response.type ??= widget.selectedFamily;
+              response.taxes ??= taxes.isNotEmpty ? taxes[0].id : null;
               Navigator.of(context).pop(response);
             }
           },

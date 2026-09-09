@@ -46,15 +46,13 @@ class _CheckoutState extends State<Checkout> {
   }
 
   Future<void> getOrders() async {
-    final List<Order> ordersFromTable =
-        await (database.select(database.orders)..where(
-              (e) => e.restTable.isValue(widget.mesaID) & e.closedAt.isNull(),
-            ))
-            .get();
+    final List<Order> ordersFromTable = await _orderRepository.getOrders(
+      widget.mesaID,
+    );
 
-    final List<Payment> paymentsFromOrder = await (database.select(
-      database.payments,
-    )..where((e) => e.order.isIn(ordersFromTable.map((e) => e.id)))).get();
+    final List<Payment> paymentsFromOrder = await _paymentRepository.getPayments(
+      ordersFromTable.first.id,
+    );
 
     double price = ordersFromTable.fold(0, (prev, e) => prev + e.totalPrice);
 
@@ -85,7 +83,6 @@ class _CheckoutState extends State<Checkout> {
   }
 
   void onEnter() async {
-    // Add payment using the PaymentRepository
     await _paymentRepository.addPayment(
       orderId: orderList.first.id,
       amount: double.parse(selected.text),
@@ -95,7 +92,6 @@ class _CheckoutState extends State<Checkout> {
       ),
     );
 
-    // Add return payment if necessary
     if (totalPrice - double.parse(selected.text) - pagado < 0) {
       await _paymentRepository.addPayment(
         orderId: orderList.first.id,

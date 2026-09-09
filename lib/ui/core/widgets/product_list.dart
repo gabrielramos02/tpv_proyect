@@ -9,7 +9,7 @@ class ProductList extends StatelessWidget {
     required this.mesa,
   });
   final List<OrderLine> items;
-  final void Function(Map<String, dynamic>) onSelectProduct;
+  final void Function(OrderLine) onSelectProduct;
   final String mesa;
 
   int totalCantidad() {
@@ -134,7 +134,7 @@ class ProductList extends StatelessWidget {
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),
@@ -148,7 +148,7 @@ class ProductList extends StatelessWidget {
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),
@@ -163,7 +163,7 @@ class ProductList extends StatelessWidget {
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),
@@ -178,7 +178,7 @@ class ProductList extends StatelessWidget {
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),

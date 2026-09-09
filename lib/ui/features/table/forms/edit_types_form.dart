@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 
+class EditTypesResult {
+
+    }
+
 class EditTypesForm extends StatefulWidget {
   const EditTypesForm({super.key, required this.product});
   final ProductTypesTableData product;
@@ -10,11 +14,11 @@ class EditTypesForm extends StatefulWidget {
 }
 
 class _EditTypesFormState extends State<EditTypesForm> {
-  Map<String, dynamic> response = {};
+  late String name;
   @override
   void initState() {
     super.initState();
-    response = widget.product.toJson();
+    name = widget.product.name;
   }
 
   @override
@@ -34,7 +38,7 @@ class _EditTypesFormState extends State<EditTypesForm> {
                 labelStyle: Theme.of(context).textTheme.bodyLarge,
               ),
               onChanged: (text) {
-                response["name"] = text;
+                name = text;
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -49,13 +53,13 @@ class _EditTypesFormState extends State<EditTypesForm> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop({"": ""});
+            Navigator.of(context).pop("");
           },
           child: const Text('Eliminar'),
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(response);
+            Navigator.of(context).pop(name);
           },
           child: const Text('OK'),
         ),

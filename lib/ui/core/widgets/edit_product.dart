@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
 
 class EditProduct extends StatelessWidget {
@@ -11,11 +12,11 @@ class EditProduct extends StatelessWidget {
     required this.onAddProductUnit,
     required this.onRemoveProductUnit,
   });
-  final Map<String, dynamic> product;
+  final OrderLine? product;
   final void Function() onSaveProduct;
-  final void Function(Map<String, dynamic>) onRemoveProduct;
-  final void Function(Map<String, dynamic>) onAddProductUnit;
-  final void Function(Map<String, dynamic>) onRemoveProductUnit;
+  final void Function(OrderLine) onRemoveProduct;
+  final void Function(OrderLine) onAddProductUnit;
+  final void Function(OrderLine) onRemoveProductUnit;
   final void Function() onCancelEdit;
 
   @override
@@ -56,8 +57,7 @@ class EditProduct extends StatelessWidget {
                   ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {
-                      onRemoveProductUnit(product);
-                      product["quantity"] --;
+                      onRemoveProductUnit(product!);
                     },
                     child: Text(
                       "-",
@@ -67,8 +67,7 @@ class EditProduct extends StatelessWidget {
                   ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {
-                      onAddProductUnit(product);
-                      product["quantity"] ++;
+                      onAddProductUnit(product!);
                     },
                     child: Text(
                       "+",
@@ -95,7 +94,7 @@ class EditProduct extends StatelessWidget {
                   ElevatedButton(
                     style: ProyectStyles.buttonStyles(context),
                     onPressed: () {
-                      onRemoveProduct(product);
+                      onRemoveProduct(product!);
                     },
                     child: Text(
                       "Eliminar",
