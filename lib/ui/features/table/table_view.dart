@@ -1,21 +1,26 @@
 import 'dart:async';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
-import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/core/logger.dart';
+import 'package:flutter_proyect/data/repositories/order_repository.dart';
+import 'package:flutter_proyect/data/repositories/products_repository.dart';
+import 'package:flutter_proyect/data/repositories/table_repository.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
+import 'package:flutter_proyect/domain/constants.dart';
 import 'package:flutter_proyect/ui/core/widgets/edit_product.dart';
 import 'package:flutter_proyect/ui/core/widgets/keyboard.dart';
 import 'package:flutter_proyect/ui/core/widgets/product_list.dart';
 import 'package:flutter_proyect/ui/core/widgets/product_types.dart';
 import 'package:flutter_proyect/ui/core/widgets/products.dart';
+import 'package:flutter_proyect/ui/features/table/checkout.dart';
 import 'package:flutter_proyect/ui/features/table/forms/add_products_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/add_types_form.dart';
-import 'package:flutter_proyect/ui/features/table/checkout.dart';
-import 'package:flutter_proyect/data/repositories/db_updates.dart';
 import 'package:flutter_proyect/ui/features/table/forms/edit_products_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/edit_types_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/free_price_form.dart';
-import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
 import 'package:flutter_proyect/ui/features/table/split_table.dart';
 import 'package:provider/provider.dart';
 
@@ -28,13 +33,22 @@ class TableView extends StatefulWidget {
 }
 
 class _TableViewState extends State<TableView> {
+  late final _orderRepository = OrderRepository(
+    context.read<DatabaseService>().database,
+  );
+  late final _productRepository = ProductRepository(
+    context.read<DatabaseService>().database,
+  );
+  late final _tableRepository = TableRepository(
+    context.read<DatabaseService>().database,
+  );
   AppDatabase get database => context.read<DatabaseService>().database;
   List<OrderLine> orderLines = [];
   List<ProductTypesTableData> productTypes = [];
   List<ProductsClassData> products = [];
-  int _selectedType = 99;
+  int _selectedType = allProductTypesId;
   String priceText = "";
-  Map<String, dynamic> _editedProduct = {};
+  OrderLine? _editedProduct;
   final GlobalKey<KeyboardState> keyboardKey = GlobalKey<KeyboardState>();
   @override
   void initState() {
@@ -53,34 +67,23 @@ class _TableViewState extends State<TableView> {
   // ***GETTERS***
 
   Future<void> getLines() async {
-    final response =
-        await (database.select(database.orderLines).join([
-              drift.innerJoin(
-                database.orders,
-                database.orders.id.equalsExp(database.orderLines.order),
-              ),
-            ])..where(
-              database.orders.restTable.equals(widget.mesa.id) &
-                  database.orders.closedAt.isNull(),
-            ))
-            .get();
-    final result = response
-        .map((row) => row.readTable(database.orderLines))
-        .toList();
+    final List<OrderLine> result = await _orderRepository.getLines(
+      widget.mesa.id,
+    );
     setState(() {
       orderLines = result;
     });
   }
 
   Future<void> getProductTypes() async {
-    final response = await database.select(database.productTypesTable).get();
+    final response = await _productRepository.getProductTypes();
     setState(() {
       productTypes = response;
     });
   }
 
   Future<void> getProducts() async {
-    final response = await database.select(database.productsClass).get();
+    final response = await _productRepository.getProducts();
     setState(() {
       products = response;
     });
@@ -95,83 +98,80 @@ class _TableViewState extends State<TableView> {
   }
 
   void onEditProductType(ProductTypesTableData productType) async {
-    final Map<String, dynamic> result = await showDialog(
+    final String? newName = await showDialog<String>(
       context: context,
       builder: (context) => EditTypesForm(product: productType),
     );
-    if (result[""] != "") {
-      await database
-          .update(database.productTypesTable)
-          .replace(ProductTypesTableData.fromJson(result));
-      final updatedDB = await database.select(database.productTypesTable).get();
-      setState(() {
-        productTypes = updatedDB;
-      });
-    } else {
-      await (database.delete(
-        database.productTypesTable,
-      )..where((e) => e.id.isValue(productType.id))).go();
-      final updatedDB = await database.select(database.productTypesTable).get();
-      setState(() {
-        productTypes = updatedDB;
-      });
+    if (newName != "" && newName != null) {
+      logger.d("Updating product type ${productType.name} to $newName");
+      await _productRepository.updateProductTypeName(productType.id, newName);
+      getProducts();
+    } else if (newName == "") {
+      logger.d("Deleting product type ${productType.name}");
+      await _productRepository.deleteProductType(productType.id);
+      getProductTypes();
     }
   }
 
   void onAddProductType() async {
-    final result = await showDialog(
+    final AddTypesFormResponse? result = await showDialog<AddTypesFormResponse>(
       context: context,
       builder: (context) => AddTypesForm(),
     );
 
-    if (result != {}) {
-      await database.into(database.productTypesTable).insert(result);
-      final updatedDB = await database.select(database.productTypesTable).get();
-
-      setState(() {
-        productTypes = updatedDB;
-      });
+    if (result?.isCancelled == false) {
+      await _productRepository.addProductType(
+        result?.productName ?? "Empty",
+        result?.productOrder ?? 0,
+        result?.productColor ?? "#FFFFFF",
+      );
+      getProductTypes();
     }
   }
 
   // ***************************************************
   // ***PRODUCT RELATED***
   void onEditProduct(ProductsClassData product) async {
-    final Map<String, dynamic> result = await showDialog(
-      context: context,
-      builder: (context) => EditProductsForm(product: product),
-    );
-    if (result[""] != "") {
-      await database
-          .update(database.productsClass)
-          .replace(ProductsClassData.fromJson(result));
-      final updatedDB = await database.select(database.productsClass).get();
-      setState(() {
-        products = updatedDB;
-      });
-    } else {
-      await (database.delete(
-        database.productsClass,
-      )..where((e) => e.id.isValue(product.id))).go();
-      final updatedDB = await database.select(database.productsClass).get();
-      setState(() {
-        products = updatedDB;
-      });
+    final EditProductsFormResponse? result =
+        await showDialog<EditProductsFormResponse>(
+          context: context,
+          builder: (context) => EditProductsForm(product: product),
+        );
+
+    if (result?.isDeleted == false) {
+      await _productRepository.updateProduct(
+        id: product.id,
+        name: result?.name ?? product.name,
+        price: result?.price ?? product.price,
+        type: result?.type ?? product.type,
+        taxes: result?.taxes ?? product.taxes,
+        order: result?.order ?? product.order,
+        color: result?.color ?? product.color,
+      );
+      getProducts();
+    } else if (result?.isDeleted == true) {
+      await _productRepository.deleteProduct(product.id);
+      getProducts();
     }
   }
 
   void onAddProduct() async {
-    final result = await showDialog(
-      context: context,
-      builder: (context) => AddProductsForm(selectedFamily: _selectedType),
-    );
+    final AddProductsFormResponse? result =
+        await showDialog<AddProductsFormResponse>(
+          context: context,
+          builder: (context) => AddProductsForm(selectedFamily: _selectedType),
+        );
 
-    if (result != {}) {
-      await database.into(database.productsClass).insert(result);
-      final updatedDB = await database.select(database.productsClass).get();
-      setState(() {
-        products = updatedDB;
-      });
+    if (result?.isCancelled == false) {
+      await _productRepository.addProduct(
+        name: result?.name ?? "Empty",
+        price: result?.price ?? 0.0,
+        type: result?.type ?? 0,
+        taxes: result?.taxes ?? 0,
+        order: result?.order ?? 0,
+        color: result?.color ?? "#FFFFFF",
+      );
+      getProducts();
     }
   }
 
@@ -180,75 +180,47 @@ class _TableViewState extends State<TableView> {
     if (priceText != "") {
       price = double.parse(priceText);
     }
-    final List<Order> orderFromTable =
-        await (database.select(database.orders)..where((e) {
-              return e.restTable.isValue(widget.mesa.id) & e.closedAt.isNull();
-            }))
-            .get();
+    final List<Order> orderFromTable = await _orderRepository.getOrders(
+      widget.mesa.id,
+    );
     final bool isNewProduct = orderLines.every((e) {
       return (e.productName == producto.name && e.currentPrice != price) ||
           (e.productName != producto.name);
     });
-    final Taxe taxRate = await (database.select(
-      database.taxes,
-    )..where((e) => e.id.isValue(producto.taxes))).getSingle();
+    final Taxe taxRate = await _productRepository.getTaxById(producto.taxes);
     if (orderFromTable.isEmpty && isNewProduct) {
-      final Order newOrder = await database
-          .into(database.orders)
-          .insertReturning(
-            OrdersCompanion.insert(
-              totalPrice: price,
-              payedPrice: 0,
-              totalTaxes: taxRate.rate * price,
-              //TODO: Rename totalPriceWithTaxes to totalPriceWithoutTaxes
-              totalPriceWithTaxes: (1 - taxRate.rate) * price,
-              state: 0,
-              restTable: widget.mesa.id,
-            ),
-          );
-      await database
-          .into(database.orderLines)
-          .insertReturning(
-            OrderLinesCompanion.insert(
-              productName: producto.name,
-              currentPrice: price,
-              totalPrice: price,
-              taxRate: taxRate.rate,
-              taxPrice: taxRate.rate * price,
-              quantity: 1,
-              order: newOrder.id,
-            ),
-          );
+      final Order newOrder = await _orderRepository.addNewOrder(
+        widget.mesa.id,
+        price,
+        taxRate.rate,
+      );
+      await _orderRepository.addNewOrderLine(
+        newOrder.id,
+        producto.id,
+        price,
+        taxRate.rate,
+        producto.name,
+      );
     } else if (isNewProduct) {
-      await database
-          .into(database.orderLines)
-          .insertReturning(
-            OrderLinesCompanion.insert(
-              productName: producto.name,
-              currentPrice: price,
-              totalPrice: price,
-              taxRate: 0.2,
-              taxPrice: (price * 0.20),
-              quantity: 1,
-              order: orderFromTable.last.id,
-            ),
-          );
+      await _orderRepository.addNewOrderLine(
+        orderFromTable.last.id,
+        producto.id,
+        price,
+        taxRate.rate,
+        producto.name,
+      );
     } else {
-      OrderLine oldProduct = orderLines.firstWhere(
+      OrderLine product = orderLines.firstWhere(
         (e) => e.productName == producto.name && e.currentPrice == price,
       );
-      OrderLine newProduct = oldProduct.copyWith(
-        quantity: oldProduct.quantity + 1,
-        totalPrice: oldProduct.currentPrice + oldProduct.totalPrice,
-        taxPrice:
-            (oldProduct.totalPrice + oldProduct.currentPrice) *
-            oldProduct.taxRate,
+      await _orderRepository.updateOrderLineQuantity(
+        product,
+        product.quantity + 1,
       );
-      await database.update(database.orderLines).replace(newProduct);
     }
     keyboardKey.currentState?.onClearInput();
 
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
 
     await getLines();
   }
@@ -256,93 +228,71 @@ class _TableViewState extends State<TableView> {
   // ****************************************************
 
   // ***PRODUCT LIST RELATED***
-  void onEditProductList(Map<String, dynamic> product) {
+  void onEditProductList(OrderLine product) {
     setState(() {
       _editedProduct = product;
     });
   }
 
   void onSaveEditProductList() async {
-    final oldProduct = OrderLine.fromJson(_editedProduct);
-    final Map<String, dynamic> result = await showDialog(
+    final FreePriceResult? result = await showDialog<FreePriceResult>(
       context: context,
       builder: (context) => FreePriceForm(),
     );
 
-    if (result["price"] != "0") {
-      final newProduct = oldProduct.copyWith(
-        currentPrice: double.parse(result["price"]),
-        taxRate: oldProduct.taxRate,
-        taxPrice: (oldProduct.taxRate * double.parse(result["price"])),
-        totalPrice: double.parse(result["price"]) * oldProduct.quantity,
+    if (result?.price != "0") {
+      if (_editedProduct == null) return;
+      await _orderRepository.updateOrderLinePrice(
+        _editedProduct!,
+        double.parse(result!.price),
       );
-      await database.update(database.orderLines).replace(newProduct);
     }
-    await DbUpdates.updatedOrders(database, oldProduct.order);
+    await _orderRepository.updateOrders(_editedProduct!.order);
     getLines();
   }
 
   void onCancelEditProductList() {
     setState(() {
-      _editedProduct = {};
+      _editedProduct = null;
     });
   }
 
-  void onRemoveProductFromList(Map<String, dynamic> removedProduct) async {
-    final orderLine = orderLines.elementAt(
-      orderLines.indexOf(OrderLine.fromJson(removedProduct)),
-    );
-    await (database.delete(
-      database.orderLines,
-    )..where((e) => e.id.isValue(orderLine.id))).go();
+  void onRemoveProductFromList(OrderLine removedProduct) async {
+    final orderLine = orderLines.firstWhere((e) => e.id == removedProduct.id);
+
+    await _orderRepository.deleteOrderLine(orderLine);
+    await _orderRepository.updateOrders(widget.mesa.id);
     getLines();
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
     setState(() {
-      _editedProduct = {};
+      _editedProduct = null;
     });
   }
 
-  void onAddProductUnitFromList(Map<String, dynamic> addUnit) async {
-    await (database.update(
-      database.orderLines,
-    )..where((e) => e.id.isValue(addUnit["id"]))).write(
-      OrderLinesCompanion.custom(
-        quantity: database.orderLines.quantity + const drift.Constant(1),
-        totalPrice:
-            database.orderLines.totalPrice + database.orderLines.currentPrice,
-        taxPrice:
-            database.orderLines.taxPrice +
-            (database.orderLines.taxRate * database.orderLines.currentPrice),
-      ),
+  void onAddProductUnitFromList(OrderLine addUnit) async {
+    final orderLine = orderLines.firstWhere((e) => e.id == addUnit.id);
+    await _orderRepository.updateOrderLineQuantity(
+      orderLine,
+      orderLine.quantity + 1,
     );
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
-    getLines();
+    await _orderRepository.updateOrders(widget.mesa.id);
+    await getLines();
   }
 
-  void onRemoveProductUnitFromList(Map<String, dynamic> addUnit) async {
-    if (addUnit["quantity"] > 1) {
-      await (database.update(
-        database.orderLines,
-      )..where((e) => e.id.isValue(addUnit["id"]))).write(
-        OrderLinesCompanion.custom(
-          quantity: database.orderLines.quantity - const drift.Constant(1),
-          totalPrice:
-              database.orderLines.totalPrice - database.orderLines.currentPrice,
-          taxPrice:
-              database.orderLines.taxPrice -
-              (database.orderLines.taxRate * database.orderLines.currentPrice),
-        ),
+  void onRemoveProductUnitFromList(OrderLine addUnit) async {
+    final orderLine = orderLines.firstWhere((e) => e.id == addUnit.id);
+    if (orderLine.quantity > 1) {
+      await _orderRepository.updateOrderLineQuantity(
+        orderLine,
+        orderLine.quantity - 1,
       );
     } else {
-      await (database.delete(
-        database.orderLines,
-      )..where((e) => e.id.isValue(addUnit["id"]))).go();
+      await _orderRepository.deleteOrderLine(orderLine);
       setState(() {
-        _editedProduct = {};
+        _editedProduct = null;
       });
     }
 
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
     getLines();
   }
 
@@ -355,28 +305,30 @@ class _TableViewState extends State<TableView> {
   }
 
   void onCheckout() async {
-    DbUpdates.updatedOrders(database, widget.mesa.id);
-    final List<Order> result = await showDialog(
+    await _orderRepository.updateOrders(widget.mesa.id);
+
+    if (!mounted) return;
+    final List<Order>? result = await showDialog<List<Order>>(
       context: context,
       builder: (context) => Checkout(mesaID: widget.mesa.id),
     );
-    getLines();
-    DbUpdates.updatedOrders(database, widget.mesa.id);
     if (!mounted) return;
-    if (result.isEmpty) {
+    if (result?.isEmpty ?? false) {
       Navigator.of(context).pop();
     }
+    getLines();
+    _orderRepository.updateOrders(widget.mesa.id);
   }
 
   void onSplitTable() async {
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
     if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) => SplitTable(mesa: widget.mesa),
     );
     getLines();
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
+    await _orderRepository.updateOrders(widget.mesa.id);
   }
 
   void onDeleteTable() async {
@@ -395,7 +347,7 @@ class _TableViewState extends State<TableView> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(0);
+                  Navigator.of(context).pop(false);
                 },
                 child: Text(
                   'No',
@@ -404,7 +356,7 @@ class _TableViewState extends State<TableView> {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(1);
+                  Navigator.of(context).pop(true);
                 },
                 child: Text(
                   'Si',
@@ -415,12 +367,9 @@ class _TableViewState extends State<TableView> {
           ),
         ) ??
         0;
-    if (result == 1 && context.mounted) {
-      await (database.delete(database.orderLines)..where(
-            (e) => e.id.isIn(orderLines.map((line) => line.id).toList()),
-          ))
-          .go();
-      await DbUpdates.updatedOrders(database, widget.mesa.id);
+    if (result && context.mounted) {
+      await _orderRepository.deleteOrderLinesBatch(orderLines);
+      await _orderRepository.updateOrders(widget.mesa.id);
       if (!mounted) return;
       Navigator.of(context).pop();
     }
@@ -433,7 +382,7 @@ class _TableViewState extends State<TableView> {
       RestTablesCompanion(state: drift.Value(2)),
     );
 
-    await database.update(database.restTables).replace(mesa);
+    await _tableRepository.updateTable(mesa);
   }
 
   @override
@@ -470,7 +419,7 @@ class _TableViewState extends State<TableView> {
             Flexible(
               child: Builder(
                 builder: (context) {
-                  if (_editedProduct.isEmpty) {
+                  if (_editedProduct == null) {
                     return Column(
                       children: [
                         Flexible(
@@ -482,7 +431,7 @@ class _TableViewState extends State<TableView> {
                           ),
                         ),
                         Visibility(
-                          visible: _selectedType != 99,
+                          visible: _selectedType != allProductTypesId,
                           child: Flexible(
                             child: Products(
                               productsList: products

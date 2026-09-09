@@ -1,11 +1,11 @@
-import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
-import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
-import 'package:flutter_proyect/ui/features/table/table_view.dart';
-import 'package:flutter_proyect/data/repositories/db_updates.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/domain/constants.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
+import 'package:flutter_proyect/ui/features/table/table_view.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_proyect/data/repositories/order_repository.dart';
 
 class SplitTable extends StatefulWidget {
   const SplitTable({super.key, required this.mesa});
@@ -17,6 +17,8 @@ class SplitTable extends StatefulWidget {
 
 class _SplitTableState extends State<SplitTable> {
   AppDatabase get database => context.read<DatabaseService>().database;
+  OrderRepository get _orderRepository =>
+      OrderRepository(context.read<DatabaseService>().database);
   List<OrderLine> leftList = [];
   List<OrderLine> rightList = [];
   late Order splitTableOrder;
@@ -44,38 +46,18 @@ class _SplitTableState extends State<SplitTable> {
   }
 
   Future<void> newOrder() async {
-    Order newSplitTableOrder = await database
-        .into(database.orders)
-        .insertReturning(
-          OrdersCompanion.insert(
-            totalPrice: 0,
-            payedPrice: 0,
-            totalTaxes: 0,
-            totalPriceWithTaxes: 0,
-            state: 0,
-            restTable: 99,
-          ),
-        );
+    Order newSplitTableOrder = await _orderRepository.addNewOrder(
+      phantomTableId,
+      0,
+      leftList.isNotEmpty ? leftList[0].taxRate : 0,
+    );
     setState(() {
       splitTableOrder = newSplitTableOrder;
     });
   }
 
   Future<void> getLeftLines() async {
-    final response =
-        await (database.select(database.orderLines).join([
-              drift.innerJoin(
-                database.orders,
-                database.orders.id.equalsExp(database.orderLines.order),
-              ),
-            ])..where(
-              database.orders.restTable.equals(widget.mesa.id) &
-                  database.orders.closedAt.isNull(),
-            ))
-            .get();
-    final result = response
-        .map((row) => row.readTable(database.orderLines))
-        .toList();
+    List<OrderLine> result = await _orderRepository.getLines(widget.mesa.id);
     setState(() {
       leftList = result;
       if (result.isNotEmpty) {
@@ -85,31 +67,23 @@ class _SplitTableState extends State<SplitTable> {
   }
 
   Future<void> getRightLines() async {
-    final response = await (database.select(
-      database.orderLines,
-    )..where((e) => e.order.isValue(splitTableOrder.id))).get();
+    List<OrderLine> result = await _orderRepository.getOrderLines(
+      splitTableOrder.id,
+    );
     setState(() {
-      rightList = response;
+      rightList = result;
     });
   }
 
   void onMoveRight(OrderLine pressed) async {
     //Changes on leftLine
     if (pressed.quantity > 1) {
-      await (database.update(
-        database.orderLines,
-      )..whereSamePrimaryKey(pressed)).write(
-        pressed.copyWith(
-          quantity: pressed.quantity - 1,
-          totalPrice: pressed.totalPrice - pressed.currentPrice,
-          taxPrice:
-              (pressed.totalPrice - pressed.currentPrice) * pressed.taxRate,
-        ),
+      await _orderRepository.updateOrderLineQuantity(
+        pressed,
+        pressed.quantity - 1,
       );
     } else {
-      await (database.delete(
-        database.orderLines,
-      )..whereSamePrimaryKey(pressed)).go();
+      await _orderRepository.deleteOrderLine(pressed);
     }
 
     //Changes on rightLine
@@ -120,31 +94,18 @@ class _SplitTableState extends State<SplitTable> {
     );
     if (indexRightLine != -1) {
       OrderLine orderOnIndex = rightList[indexRightLine];
-      await (database.update(
-        database.orderLines,
-      )..whereSamePrimaryKey(orderOnIndex)).write(
-        orderOnIndex.copyWith(
-          quantity: orderOnIndex.quantity + 1,
-          totalPrice: orderOnIndex.totalPrice + orderOnIndex.currentPrice,
-          taxPrice:
-              (orderOnIndex.totalPrice + orderOnIndex.currentPrice) *
-              orderOnIndex.taxRate,
-        ),
+      await _orderRepository.updateOrderLineQuantity(
+        orderOnIndex,
+        orderOnIndex.quantity + 1,
       );
     } else {
-      await database
-          .into(database.orderLines)
-          .insert(
-            OrderLinesCompanion.insert(
-              productName: pressed.productName,
-              currentPrice: pressed.currentPrice,
-              totalPrice: pressed.currentPrice,
-              taxRate: pressed.taxRate,
-              taxPrice: pressed.currentPrice * pressed.taxRate,
-              quantity: 1,
-              order: splitTableOrder.id,
-            ),
-          );
+      await _orderRepository.addNewOrderLine(
+        splitTableOrder.id,
+        pressed.id,
+        pressed.currentPrice,
+        pressed.taxRate,
+        pressed.productName,
+      );
     }
     getLeftLines();
     getRightLines();
@@ -153,20 +114,12 @@ class _SplitTableState extends State<SplitTable> {
   void onMoveLeft(OrderLine pressed) async {
     //Changes on rightLine
     if (pressed.quantity > 1) {
-      await (database.update(
-        database.orderLines,
-      )..whereSamePrimaryKey(pressed)).write(
-        pressed.copyWith(
-          quantity: pressed.quantity - 1,
-          totalPrice: pressed.totalPrice - pressed.currentPrice,
-          taxPrice:
-              (pressed.totalPrice - pressed.currentPrice) * pressed.taxRate,
-        ),
+      await _orderRepository.updateOrderLineQuantity(
+        pressed,
+        pressed.quantity - 1,
       );
     } else {
-      await (database.delete(
-        database.orderLines,
-      )..whereSamePrimaryKey(pressed)).go();
+      await _orderRepository.deleteOrderLine(pressed);
     }
     //Changes on leftLine
     int indexLeftLine = leftList.indexWhere(
@@ -176,51 +129,37 @@ class _SplitTableState extends State<SplitTable> {
     );
     if (indexLeftLine != -1) {
       OrderLine orderOnIndex = leftList[indexLeftLine];
-      await (database.update(
-        database.orderLines,
-      )..whereSamePrimaryKey(orderOnIndex)).write(
-        orderOnIndex.copyWith(
-          quantity: orderOnIndex.quantity + 1,
-          totalPrice: orderOnIndex.totalPrice + orderOnIndex.currentPrice,
-          taxPrice:
-              (orderOnIndex.totalPrice + orderOnIndex.currentPrice) *
-              orderOnIndex.taxRate,
-        ),
+      await _orderRepository.updateOrderLineQuantity(
+        orderOnIndex,
+        orderOnIndex.quantity + 1,
       );
     } else {
-      await database
-          .into(database.orderLines)
-          .insert(
-            OrderLinesCompanion.insert(
-              productName: pressed.productName,
-              currentPrice: pressed.currentPrice,
-              totalPrice: pressed.currentPrice,
-              taxRate: pressed.taxRate,
-              taxPrice: pressed.currentPrice * pressed.taxRate,
-              quantity: 1,
-              order: leftLineOrder,
-            ),
-          );
+      await _orderRepository.addNewOrderLine(
+        leftLineOrder,
+        pressed.id,
+        pressed.currentPrice,
+        pressed.taxRate,
+        pressed.productName,
+      );
     }
     getLeftLines();
     getRightLines();
   }
 
   void onCheckout() async {
-    await DbUpdates.updatedOrders(database, 99);
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
-    RestTable mesa = RestTable(id: 99, state: 0, left: 0, top: 0, number: "0");
+    await _orderRepository.updateOrders(phantomTableId);
+    await _orderRepository.updateOrders(widget.mesa.id);
+    RestTable mesa =
+        RestTable(id: phantomTableId, state: 0, left: 0, top: 0, number: "0");
     if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) => TableView(mesa: mesa),
     );
-    await DbUpdates.updatedOrders(database, 99);
-    await DbUpdates.updatedOrders(database, widget.mesa.id);
-    final Order response = await (database.select(
-      database.orders,
-    )..whereSamePrimaryKey(splitTableOrder)).getSingle();
-    if (response.closedAt != null) {
+    await _orderRepository.updateOrders(phantomTableId);
+    await _orderRepository.updateOrders(widget.mesa.id);
+    final Order? response = await _orderRepository.getOrderById(widget.mesa.id);
+    if (response?.closedAt != null) {
       await newOrder();
     }
     getRightLines();

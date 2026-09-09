@@ -5,7 +5,8 @@ import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 /// importing a database backup). Registered at the root of the widget tree so
 /// consumers resolve the current database via `context.read<DatabaseService>()`.
 class DatabaseService extends ChangeNotifier {
-  DatabaseService({AppDatabase Function()? open}) : _open = open ?? _openDefault {
+  DatabaseService({AppDatabase Function()? open})
+    : _open = open ?? _openDefault {
     _database = _open();
   }
 

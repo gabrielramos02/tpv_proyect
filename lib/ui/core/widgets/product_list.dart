@@ -9,7 +9,7 @@ class ProductList extends StatelessWidget {
     required this.mesa,
   });
   final List<OrderLine> items;
-  final void Function(Map<String, dynamic>) onSelectProduct;
+  final void Function(OrderLine) onSelectProduct;
   final String mesa;
 
   int totalCantidad() {
@@ -56,7 +56,7 @@ class ProductList extends StatelessWidget {
             ),
             Expanded(
               child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
+                scrollDirection: Axis.vertical,
                 child: Container(
                   margin: EdgeInsets.only(top: 4),
                   child: Table(
@@ -129,12 +129,14 @@ class ProductList extends StatelessWidget {
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
                                     item.quantity.toString(),
-                                    style: Theme.of(context).textTheme.labelLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelLarge,
                                     textAlign: TextAlign.end,
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),
@@ -144,11 +146,13 @@ class ProductList extends StatelessWidget {
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
                                     item.productName.toString(),
-                                    style: Theme.of(context).textTheme.labelLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelLarge,
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),
@@ -158,12 +162,14 @@ class ProductList extends StatelessWidget {
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
                                     "${item.currentPrice.toString()}€",
-                                    style: Theme.of(context).textTheme.labelLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelLarge,
                                     textAlign: TextAlign.end,
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),
@@ -173,12 +179,14 @@ class ProductList extends StatelessWidget {
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
                                     '${double.parse(((item.quantity) * (item.currentPrice)).toStringAsFixed(2))}€',
-                                    style: Theme.of(context).textTheme.labelLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelLarge,
                                     textAlign: TextAlign.end,
                                   ),
                                 ),
                                 onTap: () {
-                                  onSelectProduct(item.toJson());
+                                  onSelectProduct(item);
                                 },
                               ),
                             ),

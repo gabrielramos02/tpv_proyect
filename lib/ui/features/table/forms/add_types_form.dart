@@ -1,5 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+
+class AddTypesFormResponse {
+  final bool isCancelled;
+  final String? productName;
+  final String? productColor;
+  final int? productOrder;
+
+  AddTypesFormResponse({
+    this.isCancelled = false,
+    this.productName,
+    this.productColor,
+    this.productOrder,
+  });
+}
 
 class AddTypesForm extends StatefulWidget {
   const AddTypesForm({super.key});
@@ -42,18 +55,18 @@ class _AddTypesFormState extends State<AddTypesForm> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop({});
+            Navigator.of(context).pop(AddTypesFormResponse(isCancelled: true));
           },
           child: const Text('Cancelar'),
         ),
         TextButton(
           onPressed: () {
-            final ProductTypesTableCompanion response =
-                ProductTypesTableCompanion.insert(
-                  name: name,
-                  color: "",
-                  order: 0,
-                );
+            final AddTypesFormResponse response = AddTypesFormResponse(
+              isCancelled: false,
+              productName: name,
+              productColor: "",
+              productOrder: 0,
+            );
             Navigator.of(context).pop(response);
           },
           child: const Text('OK'),

@@ -1,12 +1,12 @@
-import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_proyect/data/services/database/dbConnection.dart';
+import 'package:flutter_proyect/data/repositories/payment_repository.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
-import 'package:flutter_proyect/data/repositories/db_updates.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_proyect/ui/core/theme/proyect_styles.dart';
 import 'package:function_tree/function_tree.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_proyect/data/repositories/order_repository.dart';
 
 TextEditingController inputControllerEfectivo = TextEditingController(text: "");
 TextEditingController inputControllerVisa = TextEditingController(text: "");
@@ -22,6 +22,12 @@ class Checkout extends StatefulWidget {
 
 class _CheckoutState extends State<Checkout> {
   AppDatabase get database => context.read<DatabaseService>().database;
+  late final OrderRepository _orderRepository = OrderRepository(
+    context.read<DatabaseService>().database,
+  );
+  late final PaymentRepository _paymentRepository = PaymentRepository(
+    context.read<DatabaseService>().database,
+  );
   TextEditingController selected = inputControllerEfectivo;
   String selectedName = "Efectivo";
   List<Payment> paymentList = [];
@@ -39,15 +45,12 @@ class _CheckoutState extends State<Checkout> {
   }
 
   Future<void> getOrders() async {
-    final List<Order> ordersFromTable =
-        await (database.select(database.orders)..where(
-              (e) => e.restTable.isValue(widget.mesaID) & e.closedAt.isNull(),
-            ))
-            .get();
+    final List<Order> ordersFromTable = await _orderRepository.getOrders(
+      widget.mesaID,
+    );
 
-    final List<Payment> paymentsFromOrder = await (database.select(
-      database.payments,
-    )..where((e) => e.order.isIn(ordersFromTable.map((e) => e.id)))).get();
+    final List<Payment> paymentsFromOrder = await _paymentRepository
+        .getPayments(ordersFromTable.first.id);
 
     double price = ordersFromTable.fold(0, (prev, e) => prev + e.totalPrice);
 
@@ -67,11 +70,9 @@ class _CheckoutState extends State<Checkout> {
   }
 
   Future<void> getPayed() async {
-    final List<Order> ordersFromTable =
-        await (database.select(database.orders)..where(
-              (e) => e.restTable.isValue(widget.mesaID) & e.closedAt.isNull(),
-            ))
-            .get();
+    final List<Order> ordersFromTable = await _orderRepository.getOrders(
+      widget.mesaID,
+    );
 
     double payed = ordersFromTable.fold(0, (prev, e) => prev + e.payedPrice);
     setState(() {
@@ -80,44 +81,28 @@ class _CheckoutState extends State<Checkout> {
   }
 
   void onEnter() async {
-    if (double.parse(selected.text) > (totalPrice - pagado)) {
-      await database
-          .into(database.payments)
-          .insert(
-            PaymentsCompanion.insert(
-              paymentMethod: selectedName,
-              payedAmount: double.parse(selected.text),
-              order: orderList.first.id,
-              paymentDateTime: drift.Value(DateTime.now()),
-            ),
-          );
-      await database
-          .into(database.payments)
-          .insert(
-            PaymentsCompanion.insert(
-              paymentMethod: "Devolucion",
-              payedAmount: totalPrice - double.parse(selected.text) - pagado,
-              order: orderList.first.id,
-              paymentDateTime: drift.Value(DateTime.now()),
-            ),
-          );
-    } else {
-      await database
-          .into(database.payments)
-          .insert(
-            PaymentsCompanion.insert(
-              paymentMethod: selectedName,
-              payedAmount: double.parse(selected.text),
-              order: orderList.first.id,
-              paymentDateTime: drift.Value(DateTime.now()),
-            ),
-          );
+    await _paymentRepository.addPayment(
+      orderId: orderList.first.id,
+      amount: double.parse(selected.text),
+      method: PaymentMethod.values.firstWhere(
+        (e) => e.value == selectedName,
+        orElse: () => PaymentMethod.cash,
+      ),
+    );
+
+    if (totalPrice - double.parse(selected.text) - pagado < 0) {
+      await _paymentRepository.addPayment(
+        orderId: orderList.first.id,
+        amount: totalPrice - double.parse(selected.text) - pagado,
+        method: PaymentMethod.returnPayment,
+      );
     }
+
     setState(() {
       pagado = pagado += double.parse(selected.text);
     });
     getOrders();
-    await DbUpdates.updatedOrders(database, widget.mesaID);
+    await _orderRepository.updateOrders(widget.mesaID);
     setState(() {
       selected.text = "";
     });
@@ -746,13 +731,8 @@ class _CheckoutState extends State<Checkout> {
       actions: [
         TextButton(
           onPressed: () async {
-            final List<Order> ordersFromTable =
-                await (database.select(database.orders)..where(
-                      (e) =>
-                          e.restTable.isValue(widget.mesaID) &
-                          e.closedAt.isNull(),
-                    ))
-                    .get();
+            final List<Order> ordersFromTable = await _orderRepository
+                .getOrders(widget.mesaID);
             if (!mounted) return;
             if (!context.mounted) return;
             Navigator.of(context).pop(ordersFromTable);

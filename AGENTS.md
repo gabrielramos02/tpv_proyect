@@ -49,7 +49,7 @@ main
 - **Issue work** creates a short-lived branch from the project branch and opens a **PR targeting the project branch**.
 - Use `Fixes TPV-N` in the PR description to link to Linear and auto-close the issue on merge; `Refs TPV-N` links without closing.
 - When a project is complete, open a **PR from the project branch → `main`** to ship.
-- **Merge `main` into project branches regularly** (daily or every few days) to prevent drift and catch conflicts early.
+- **Prefer rebasing `main` onto project branches** (daily or every few days) to prevent drift and catch conflicts early; use `git rebase project/<slug>` on the project branch rather than merge commits. Only fall back to merging when a rebase would churn too many commits.
 
 ### Linear automation & status
 
