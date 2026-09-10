@@ -8,7 +8,7 @@ import 'package:flutter_proyect/data/repositories/products_repository.dart';
 import 'package:flutter_proyect/data/repositories/table_repository.dart';
 import 'package:flutter_proyect/data/services/database/database_service.dart';
 import 'package:flutter_proyect/data/services/database/dbConnection.dart';
-import 'package:flutter_proyect/data/services/printer/print_ticket.dart';
+import 'package:flutter_proyect/data/services/printer/printer_service.dart';
 import 'package:flutter_proyect/domain/constants.dart';
 import 'package:flutter_proyect/ui/core/widgets/edit_product.dart';
 import 'package:flutter_proyect/ui/core/widgets/keyboard.dart';
@@ -42,6 +42,7 @@ class _TableViewState extends State<TableView> {
   late final _tableRepository = TableRepository(
     context.read<DatabaseService>().database,
   );
+  late final PrinterService _printerService = PrinterService();
   AppDatabase get database => context.read<DatabaseService>().database;
   List<OrderLine> orderLines = [];
   List<ProductTypesTableData> productTypes = [];
@@ -377,7 +378,11 @@ class _TableViewState extends State<TableView> {
 
   // *** Print Related ***
   Future onPrintReceive() async {
-    await printReceive(database, orderLines, widget.mesa.number);
+    await _printerService.printReceive(
+      _orderRepository.db,
+      orderLines,
+      widget.mesa.number,
+    );
     RestTable mesa = widget.mesa.copyWithCompanion(
       RestTablesCompanion(state: drift.Value(2)),
     );
