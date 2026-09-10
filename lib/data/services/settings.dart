@@ -1,6 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter_proyect/core/logger.dart';
-import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
+import 'package:flutter_proyect/data/services/printer/printer_service.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,17 +10,9 @@ class Config {
 
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
-    final printerManager = FlutterThermalPrinter.instance;
+    PrinterService printerService = PrinterService();
     if (Config.selectedPrinter == null) return;
-    switch (selectedPrinter!.connectionType) {
-      case ConnectionType.USB:
-        await printerManager.connect(selectedPrinter!);
-        break;
-      case ConnectionType.BLE:
-        await printerManager.connect(selectedPrinter!);
-        break;
-      default:
-    }
+    await printerService.connectDevice();
     logger.i("Connected to printer: ${selectedPrinter?.uniqueId}");
   }
 
