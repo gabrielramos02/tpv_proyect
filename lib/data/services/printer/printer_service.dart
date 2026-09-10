@@ -25,10 +25,11 @@ class PrinterService extends ChangeNotifier {
 
   String? _mensajeInicial = Config.welcomeText;
   String? _mensajeDespedida = Config.goodbyeText;
-  String _ipAddress = '';
+  String _ipAddress = Config.selectedPrinter?.address ?? '';
   String _port = '9100';
-  Printer? _selectedPrinter;
-  ConnectionType? _selectedPrinterType = ConnectionType.BLE;
+  Printer? _selectedPrinter = Config.selectedPrinter;
+  ConnectionType? _selectedPrinterType =
+      Config.selectedPrinter?.connectionType ?? ConnectionType.BLE;
 
   bool get isScanning => _isScanning;
   bool get isConnected => _isConnected;
@@ -118,6 +119,7 @@ class PrinterService extends ChangeNotifier {
       }
     }
     _selectedPrinter = device;
+    await Config.setPrinter(device);
     notifyListeners();
   }
 
