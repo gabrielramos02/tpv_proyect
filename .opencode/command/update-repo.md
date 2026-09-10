@@ -14,4 +14,6 @@ Update the git repository and switch to the branch of the project currently bein
    - Otherwise, ask the user which project branch to target.
 4. Run `git switch <target-project-branch>`.
 5. If the target branch is not yet up to date, run `git pull --prune` again on it.
-6. Report the final branch, its tracking status, and any locally deleted remote branches.
+6. Delete the local branch if the origin branch is deleted
+7. Report the final branch, its tracking status, and any locally deleted remote branches.
+
