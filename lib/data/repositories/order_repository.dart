@@ -49,6 +49,7 @@ class OrderRepository {
     return response;
   }
 
+// TODO not every line has the same tax rate, so this should be changed to calculate the total taxes based on the order lines
   Future<Order> addNewOrder(int mesaId, double price, double taxRate) async {
     final order = await _db
         .into(_db.orders)
