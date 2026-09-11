@@ -307,8 +307,28 @@ class _TableViewState extends State<TableView> {
 
   void onCheckout() async {
     await _orderRepository.updateOrders(widget.mesa.id);
-
     if (!mounted) return;
+    if (!orderLines.isNotEmpty) {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(
+            "No hay productos en la mesa",
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Ok', style: Theme.of(context).textTheme.bodyMedium),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     final List<Order>? result = await showDialog<List<Order>>(
       context: context,
       builder: (context) => Checkout(mesaID: widget.mesa.id),
