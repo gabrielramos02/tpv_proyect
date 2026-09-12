@@ -89,7 +89,7 @@ class _ZoneViewState extends State<ZoneView> {
   void onTablePressed(RestTable mesa) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => TableView(mesa: mesa)),
+      MaterialPageRoute(builder: (context) => TableView(table: mesa)),
     );
     _zoneViewModel.loadTables();
   }

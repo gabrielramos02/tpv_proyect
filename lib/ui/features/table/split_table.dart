@@ -48,7 +48,7 @@ class _SplitTableState extends State<SplitTable> {
     if (!mounted) return;
     await showDialog(
       context: context,
-      builder: (context) => TableView(mesa: checkoutTable),
+      builder: (context) => TableView(table: checkoutTable),
     );
     await _splitTableModel.postCheckout();
     if (!mounted) return;
