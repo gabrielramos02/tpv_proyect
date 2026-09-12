@@ -17,7 +17,7 @@ import 'package:flutter_proyect/ui/features/table/forms/edit_products_form.dart'
 import 'package:flutter_proyect/ui/features/table/forms/edit_types_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/free_price_form.dart';
 import 'package:flutter_proyect/ui/features/table/split_table.dart';
-import 'package:flutter_proyect/ui/features/table/view_models/table_view_model.dart';
+import 'package:flutter_proyect/ui/features/table/view_models/table_view.model.dart';
 import 'package:provider/provider.dart';
 
 class TableView extends StatefulWidget {
