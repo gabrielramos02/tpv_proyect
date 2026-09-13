@@ -15,7 +15,7 @@ class _NewTableFormState extends State<NewTableForm> {
   Widget build(BuildContext context) {
     return AlertDialog(
       actionsAlignment: MainAxisAlignment.spaceBetween,
-      title: Text('Precio Libre'),
+      title: Text('Nueva Mesa', style: Theme.of(context).textTheme.bodyLarge),
       content: Form(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
