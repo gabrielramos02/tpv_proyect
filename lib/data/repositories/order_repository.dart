@@ -49,7 +49,7 @@ class OrderRepository {
     return response;
   }
 
-// TODO not every line has the same tax rate, so this should be changed to calculate the total taxes based on the order lines
+  // TODO not every line has the same tax rate, so this should be changed to calculate the total taxes based on the order lines
   Future<Order> addNewOrder(int mesaId, double price, double taxRate) async {
     final order = await _db
         .into(_db.orders)
@@ -73,7 +73,7 @@ class OrderRepository {
               return e.restTable.isValue(tableID) & e.closedAt.isNull();
             }))
             .get();
-    if (ordersFromTable.isNotEmpty) {}
+    if (ordersFromTable.isNotEmpty) return;
     int tableState = 0;
 
     for (var order in ordersFromTable) {

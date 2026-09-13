@@ -39,7 +39,6 @@ class _EditProductsFormState extends State<EditProductsForm> {
   List<Taxe> taxes = [];
   late EditProductsFormResponse response;
   @override
-  @override
   void initState() {
     super.initState();
     response = EditProductsFormResponse(

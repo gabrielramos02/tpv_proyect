@@ -10,7 +10,6 @@ class NewTableForm extends StatefulWidget {
 class _NewTableFormState extends State<NewTableForm> {
   String number = "";
 
-  final Map<String, dynamic> response = {"price": "0"};
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
