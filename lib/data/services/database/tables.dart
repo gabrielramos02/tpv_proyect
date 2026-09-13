@@ -38,8 +38,7 @@ class Orders extends Table {
   RealColumn get totalPrice => real()();
   RealColumn get payedPrice => real()();
   RealColumn get totalTaxes => real()();
-  RealColumn get totalPriceWithTaxes => real()();
-  IntColumn get state => integer()(); //TODO: borrar column
+  RealColumn get totalPriceWithoutTaxes => real()();
   IntColumn get restTable => integer().references(RestTables, #id)();
 }
 

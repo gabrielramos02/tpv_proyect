@@ -49,7 +49,7 @@ class OrderRepository {
     return response;
   }
 
-// TODO not every line has the same tax rate, so this should be changed to calculate the total taxes based on the order lines
+  // TODO not every line has the same tax rate, so this should be changed to calculate the total taxes based on the order lines
   Future<Order> addNewOrder(int mesaId, double price, double taxRate) async {
     final order = await _db
         .into(_db.orders)
@@ -58,8 +58,7 @@ class OrderRepository {
             totalPrice: price,
             payedPrice: 0,
             totalTaxes: taxRate * price,
-            totalPriceWithTaxes: (1 - taxRate) * price,
-            state: 0,
+            totalPriceWithoutTaxes: (1 - taxRate) * price,
             restTable: mesaId,
           ),
         );
@@ -73,7 +72,7 @@ class OrderRepository {
               return e.restTable.isValue(tableID) & e.closedAt.isNull();
             }))
             .get();
-    if (ordersFromTable.isNotEmpty) {}
+    if (ordersFromTable.isEmpty) return;
     int tableState = 0;
 
     for (var order in ordersFromTable) {
@@ -110,7 +109,7 @@ class OrderRepository {
             OrdersCompanion(
               totalPrice: drift.Value(totalPrice),
               totalTaxes: drift.Value(totalTaxes),
-              totalPriceWithTaxes: drift.Value(totalPriceWithoutTaxes),
+              totalPriceWithoutTaxes: drift.Value(totalPriceWithoutTaxes),
               closedAt: drift.Value(DateTime.now()),
               payedPrice: drift.Value(totalPayed),
             ),
@@ -122,7 +121,7 @@ class OrderRepository {
             OrdersCompanion(
               totalPrice: drift.Value(totalPrice),
               totalTaxes: drift.Value(totalTaxes),
-              totalPriceWithTaxes: drift.Value(totalPriceWithoutTaxes),
+              totalPriceWithoutTaxes: drift.Value(totalPriceWithoutTaxes),
               payedPrice: drift.Value(totalPayed),
             ),
           );

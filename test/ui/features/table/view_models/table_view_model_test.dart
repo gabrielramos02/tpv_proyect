@@ -9,7 +9,7 @@ import 'package:flutter_proyect/ui/features/table/forms/add_products_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/add_types_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/edit_products_form.dart';
 import 'package:flutter_proyect/ui/features/table/forms/free_price_form.dart';
-import 'package:flutter_proyect/ui/features/table/view_models/table_view.model.dart';
+import 'package:flutter_proyect/ui/features/table/view_models/table_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

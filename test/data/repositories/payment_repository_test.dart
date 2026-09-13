@@ -26,8 +26,7 @@ void main() {
             totalPrice: 0,
             payedPrice: 0,
             totalTaxes: 0,
-            totalPriceWithTaxes: 0,
-            state: 0,
+            totalPriceWithoutTaxes: 0,
             restTable: 1,
           ),
         );

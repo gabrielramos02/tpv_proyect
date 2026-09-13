@@ -338,23 +338,15 @@ class Orders extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<double> totalPriceWithTaxes =
+  late final GeneratedColumn<double> totalPriceWithoutTaxes =
       GeneratedColumn<double>(
-        'total_price_with_taxes',
+        'total_price_without_taxes',
         aliasedName,
         false,
         type: DriftSqlType.double,
         requiredDuringInsert: true,
         $customConstraints: 'NOT NULL',
       );
-  late final GeneratedColumn<int> state = GeneratedColumn<int>(
-    'state',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
   late final GeneratedColumn<int> restTable = GeneratedColumn<int>(
     'rest_table',
     aliasedName,
@@ -371,8 +363,7 @@ class Orders extends Table with TableInfo {
     totalPrice,
     payedPrice,
     totalTaxes,
-    totalPriceWithTaxes,
-    state,
+    totalPriceWithoutTaxes,
     restTable,
   ];
   @override
@@ -630,8 +621,8 @@ class Tickets extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV2 extends GeneratedDatabase {
-  DatabaseAtV2(QueryExecutor e) : super(e);
+class DatabaseAtV3 extends GeneratedDatabase {
+  DatabaseAtV3(QueryExecutor e) : super(e);
   late final RestTables restTables = RestTables(this);
   late final ProductTypesTable productTypesTable = ProductTypesTable(this);
   late final Taxes taxes = Taxes(this);
@@ -655,5 +646,5 @@ class DatabaseAtV2 extends GeneratedDatabase {
     tickets,
   ];
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 }

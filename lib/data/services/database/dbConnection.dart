@@ -25,7 +25,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
@@ -41,6 +41,14 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: stepByStep(
       from1To2: (m, schema) async {
         await m.createTable(schema.tickets);
+      },
+      from2To3: (m, schema) async {
+        await m.renameColumn(
+          schema.orders,
+          'total_price_with_taxes',
+          schema.orders.totalPriceWithoutTaxes,
+        );
+        await m.alterTable(TableMigration(schema.orders));
       },
     ),
   );

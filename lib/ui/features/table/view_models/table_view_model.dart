@@ -243,7 +243,8 @@ class TableViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      if (result?.price != "0") {
+      if (result?.price != "0" &&
+          double.tryParse(result?.price ?? "") != null) {
         if (_editedProduct == null) return;
         await orderRepository.updateOrderLinePrice(
           _editedProduct!,
