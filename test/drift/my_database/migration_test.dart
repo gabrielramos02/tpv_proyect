@@ -2,7 +2,7 @@
 // ignore_for_file: unused_local_variable, unused_import
 import 'package:drift/drift.dart';
 import 'package:drift_dev/api/migrations_native.dart';
-import 'package:flutter_proyect/dbModels/dbConnection.dart';
+import 'package:flutter_proyect/data/services/database/dbConnection.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'generated/schema.dart';
 
@@ -42,72 +42,7 @@ void main() {
   // (e.g. by alterating their type or constraints). Migrations that only add
   // tables or columns typically don't need these advanced tests. For more
   // information, see https://drift.simonbinder.eu/migrations/tests/#verifying-data-integrity
-  // TODO: This generated template shows how these tests could be written. Adopt
-  // it to your own needs when testing migrations with data integrity.
-  test('migration from v1 to v2 does not corrupt data', () async {
-    // Add data to insert into the old database, and the expected rows after the
-    // migration.
-    // TODO: Fill these lists
-    final oldRestTablesData = <v1.RestTablesData>[];
-    final expectedNewRestTablesData = <v2.RestTablesData>[];
-
-    final oldProductTypesTableData = <v1.ProductTypesTableData>[];
-    final expectedNewProductTypesTableData = <v2.ProductTypesTableData>[];
-
-    final oldTaxesData = <v1.TaxesData>[];
-    final expectedNewTaxesData = <v2.TaxesData>[];
-
-    final oldProductsClassData = <v1.ProductsClassData>[];
-    final expectedNewProductsClassData = <v2.ProductsClassData>[];
-
-    final oldOrdersData = <v1.OrdersData>[];
-    final expectedNewOrdersData = <v2.OrdersData>[];
-
-    final oldOrderLinesData = <v1.OrderLinesData>[];
-    final expectedNewOrderLinesData = <v2.OrderLinesData>[];
-
-    final oldPaymentsData = <v1.PaymentsData>[];
-    final expectedNewPaymentsData = <v2.PaymentsData>[];
-
-    await verifier.testWithDataIntegrity(
-      oldVersion: 1,
-      newVersion: 2,
-      createOld: v1.DatabaseAtV1.new,
-      createNew: v2.DatabaseAtV2.new,
-      openTestedDatabase: AppDatabase.new,
-      createItems: (batch, oldDb) {
-        batch.insertAll(oldDb.restTables, oldRestTablesData);
-        batch.insertAll(oldDb.productTypesTable, oldProductTypesTableData);
-        batch.insertAll(oldDb.taxes, oldTaxesData);
-        batch.insertAll(oldDb.productsClass, oldProductsClassData);
-        batch.insertAll(oldDb.orders, oldOrdersData);
-        batch.insertAll(oldDb.orderLines, oldOrderLinesData);
-        batch.insertAll(oldDb.payments, oldPaymentsData);
-      },
-      validateItems: (newDb) async {
-        expect(
-          expectedNewRestTablesData,
-          await newDb.select(newDb.restTables).get(),
-        );
-        expect(
-          expectedNewProductTypesTableData,
-          await newDb.select(newDb.productTypesTable).get(),
-        );
-        expect(expectedNewTaxesData, await newDb.select(newDb.taxes).get());
-        expect(
-          expectedNewProductsClassData,
-          await newDb.select(newDb.productsClass).get(),
-        );
-        expect(expectedNewOrdersData, await newDb.select(newDb.orders).get());
-        expect(
-          expectedNewOrderLinesData,
-          await newDb.select(newDb.orderLines).get(),
-        );
-        expect(
-          expectedNewPaymentsData,
-          await newDb.select(newDb.payments).get(),
-        );
-      },
-    );
-  });
+  // Note: The data integrity test template has been removed as the generated
+  // schema types have changed. The simple migration tests above verify schema
+  // correctness.
 }

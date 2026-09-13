@@ -5,6 +5,6 @@ targets:
         options:
           databases:
             # Required: A name for the database and its path
-            my_database: lib/dbModels/dbConnection.dart
+            my_database: lib/data/services/database/dbConnection.dart
 
             # Optional: Add more databases
