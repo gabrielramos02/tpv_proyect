@@ -29,7 +29,7 @@ void main() {
     double totalPrice = 0,
     double payedPrice = 0,
     double totalTaxes = 0,
-    double totalPriceWithTaxes = 0,
+    double totalPriceWithoutTaxes = 0,
     DateTime? closedAt,
   }) async {
     return db
@@ -39,8 +39,7 @@ void main() {
             totalPrice: totalPrice,
             payedPrice: payedPrice,
             totalTaxes: totalTaxes,
-            totalPriceWithTaxes: totalPriceWithTaxes,
-            state: 0,
+            totalPriceWithoutTaxes: totalPriceWithoutTaxes,
             restTable: mesaId,
           ).copyWith(
             closedAt:
@@ -122,8 +121,7 @@ void main() {
                 totalPrice: 0,
                 payedPrice: 0,
                 totalTaxes: 0,
-                totalPriceWithTaxes: 0,
-                state: 0,
+                totalPriceWithoutTaxes: 0,
                 restTable: otherTable.id,
               ),
             );

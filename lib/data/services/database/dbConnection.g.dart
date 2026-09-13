@@ -1386,26 +1386,17 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _totalPriceWithTaxesMeta =
-      const VerificationMeta('totalPriceWithTaxes');
+  static const VerificationMeta _totalPriceWithoutTaxesMeta =
+      const VerificationMeta('totalPriceWithoutTaxes');
   @override
-  late final GeneratedColumn<double> totalPriceWithTaxes =
+  late final GeneratedColumn<double> totalPriceWithoutTaxes =
       GeneratedColumn<double>(
-        'total_price_with_taxes',
+        'total_price_without_taxes',
         aliasedName,
         false,
         type: DriftSqlType.double,
         requiredDuringInsert: true,
       );
-  static const VerificationMeta _stateMeta = const VerificationMeta('state');
-  @override
-  late final GeneratedColumn<int> state = GeneratedColumn<int>(
-    'state',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _restTableMeta = const VerificationMeta(
     'restTable',
   );
@@ -1428,8 +1419,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     totalPrice,
     payedPrice,
     totalTaxes,
-    totalPriceWithTaxes,
-    state,
+    totalPriceWithoutTaxes,
     restTable,
   ];
   @override
@@ -1483,24 +1473,16 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     } else if (isInserting) {
       context.missing(_totalTaxesMeta);
     }
-    if (data.containsKey('total_price_with_taxes')) {
+    if (data.containsKey('total_price_without_taxes')) {
       context.handle(
-        _totalPriceWithTaxesMeta,
-        totalPriceWithTaxes.isAcceptableOrUnknown(
-          data['total_price_with_taxes']!,
-          _totalPriceWithTaxesMeta,
+        _totalPriceWithoutTaxesMeta,
+        totalPriceWithoutTaxes.isAcceptableOrUnknown(
+          data['total_price_without_taxes']!,
+          _totalPriceWithoutTaxesMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_totalPriceWithTaxesMeta);
-    }
-    if (data.containsKey('state')) {
-      context.handle(
-        _stateMeta,
-        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_stateMeta);
+      context.missing(_totalPriceWithoutTaxesMeta);
     }
     if (data.containsKey('rest_table')) {
       context.handle(
@@ -1543,13 +1525,9 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.double,
         data['${effectivePrefix}total_taxes'],
       )!,
-      totalPriceWithTaxes: attachedDatabase.typeMapping.read(
+      totalPriceWithoutTaxes: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
-        data['${effectivePrefix}total_price_with_taxes'],
-      )!,
-      state: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}state'],
+        data['${effectivePrefix}total_price_without_taxes'],
       )!,
       restTable: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -1571,8 +1549,7 @@ class Order extends DataClass implements Insertable<Order> {
   final double totalPrice;
   final double payedPrice;
   final double totalTaxes;
-  final double totalPriceWithTaxes;
-  final int state;
+  final double totalPriceWithoutTaxes;
   final int restTable;
   const Order({
     required this.id,
@@ -1581,8 +1558,7 @@ class Order extends DataClass implements Insertable<Order> {
     required this.totalPrice,
     required this.payedPrice,
     required this.totalTaxes,
-    required this.totalPriceWithTaxes,
-    required this.state,
+    required this.totalPriceWithoutTaxes,
     required this.restTable,
   });
   @override
@@ -1596,8 +1572,7 @@ class Order extends DataClass implements Insertable<Order> {
     map['total_price'] = Variable<double>(totalPrice);
     map['payed_price'] = Variable<double>(payedPrice);
     map['total_taxes'] = Variable<double>(totalTaxes);
-    map['total_price_with_taxes'] = Variable<double>(totalPriceWithTaxes);
-    map['state'] = Variable<int>(state);
+    map['total_price_without_taxes'] = Variable<double>(totalPriceWithoutTaxes);
     map['rest_table'] = Variable<int>(restTable);
     return map;
   }
@@ -1612,8 +1587,7 @@ class Order extends DataClass implements Insertable<Order> {
       totalPrice: Value(totalPrice),
       payedPrice: Value(payedPrice),
       totalTaxes: Value(totalTaxes),
-      totalPriceWithTaxes: Value(totalPriceWithTaxes),
-      state: Value(state),
+      totalPriceWithoutTaxes: Value(totalPriceWithoutTaxes),
       restTable: Value(restTable),
     );
   }
@@ -1630,10 +1604,9 @@ class Order extends DataClass implements Insertable<Order> {
       totalPrice: serializer.fromJson<double>(json['totalPrice']),
       payedPrice: serializer.fromJson<double>(json['payedPrice']),
       totalTaxes: serializer.fromJson<double>(json['totalTaxes']),
-      totalPriceWithTaxes: serializer.fromJson<double>(
-        json['totalPriceWithTaxes'],
+      totalPriceWithoutTaxes: serializer.fromJson<double>(
+        json['totalPriceWithoutTaxes'],
       ),
-      state: serializer.fromJson<int>(json['state']),
       restTable: serializer.fromJson<int>(json['restTable']),
     );
   }
@@ -1647,8 +1620,9 @@ class Order extends DataClass implements Insertable<Order> {
       'totalPrice': serializer.toJson<double>(totalPrice),
       'payedPrice': serializer.toJson<double>(payedPrice),
       'totalTaxes': serializer.toJson<double>(totalTaxes),
-      'totalPriceWithTaxes': serializer.toJson<double>(totalPriceWithTaxes),
-      'state': serializer.toJson<int>(state),
+      'totalPriceWithoutTaxes': serializer.toJson<double>(
+        totalPriceWithoutTaxes,
+      ),
       'restTable': serializer.toJson<int>(restTable),
     };
   }
@@ -1660,8 +1634,7 @@ class Order extends DataClass implements Insertable<Order> {
     double? totalPrice,
     double? payedPrice,
     double? totalTaxes,
-    double? totalPriceWithTaxes,
-    int? state,
+    double? totalPriceWithoutTaxes,
     int? restTable,
   }) => Order(
     id: id ?? this.id,
@@ -1670,8 +1643,8 @@ class Order extends DataClass implements Insertable<Order> {
     totalPrice: totalPrice ?? this.totalPrice,
     payedPrice: payedPrice ?? this.payedPrice,
     totalTaxes: totalTaxes ?? this.totalTaxes,
-    totalPriceWithTaxes: totalPriceWithTaxes ?? this.totalPriceWithTaxes,
-    state: state ?? this.state,
+    totalPriceWithoutTaxes:
+        totalPriceWithoutTaxes ?? this.totalPriceWithoutTaxes,
     restTable: restTable ?? this.restTable,
   );
   Order copyWithCompanion(OrdersCompanion data) {
@@ -1688,10 +1661,9 @@ class Order extends DataClass implements Insertable<Order> {
       totalTaxes: data.totalTaxes.present
           ? data.totalTaxes.value
           : this.totalTaxes,
-      totalPriceWithTaxes: data.totalPriceWithTaxes.present
-          ? data.totalPriceWithTaxes.value
-          : this.totalPriceWithTaxes,
-      state: data.state.present ? data.state.value : this.state,
+      totalPriceWithoutTaxes: data.totalPriceWithoutTaxes.present
+          ? data.totalPriceWithoutTaxes.value
+          : this.totalPriceWithoutTaxes,
       restTable: data.restTable.present ? data.restTable.value : this.restTable,
     );
   }
@@ -1705,8 +1677,7 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('totalPrice: $totalPrice, ')
           ..write('payedPrice: $payedPrice, ')
           ..write('totalTaxes: $totalTaxes, ')
-          ..write('totalPriceWithTaxes: $totalPriceWithTaxes, ')
-          ..write('state: $state, ')
+          ..write('totalPriceWithoutTaxes: $totalPriceWithoutTaxes, ')
           ..write('restTable: $restTable')
           ..write(')'))
         .toString();
@@ -1720,8 +1691,7 @@ class Order extends DataClass implements Insertable<Order> {
     totalPrice,
     payedPrice,
     totalTaxes,
-    totalPriceWithTaxes,
-    state,
+    totalPriceWithoutTaxes,
     restTable,
   );
   @override
@@ -1734,8 +1704,7 @@ class Order extends DataClass implements Insertable<Order> {
           other.totalPrice == this.totalPrice &&
           other.payedPrice == this.payedPrice &&
           other.totalTaxes == this.totalTaxes &&
-          other.totalPriceWithTaxes == this.totalPriceWithTaxes &&
-          other.state == this.state &&
+          other.totalPriceWithoutTaxes == this.totalPriceWithoutTaxes &&
           other.restTable == this.restTable);
 }
 
@@ -1746,8 +1715,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<double> totalPrice;
   final Value<double> payedPrice;
   final Value<double> totalTaxes;
-  final Value<double> totalPriceWithTaxes;
-  final Value<int> state;
+  final Value<double> totalPriceWithoutTaxes;
   final Value<int> restTable;
   const OrdersCompanion({
     this.id = const Value.absent(),
@@ -1756,8 +1724,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.totalPrice = const Value.absent(),
     this.payedPrice = const Value.absent(),
     this.totalTaxes = const Value.absent(),
-    this.totalPriceWithTaxes = const Value.absent(),
-    this.state = const Value.absent(),
+    this.totalPriceWithoutTaxes = const Value.absent(),
     this.restTable = const Value.absent(),
   });
   OrdersCompanion.insert({
@@ -1767,14 +1734,12 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     required double totalPrice,
     required double payedPrice,
     required double totalTaxes,
-    required double totalPriceWithTaxes,
-    required int state,
+    required double totalPriceWithoutTaxes,
     required int restTable,
   }) : totalPrice = Value(totalPrice),
        payedPrice = Value(payedPrice),
        totalTaxes = Value(totalTaxes),
-       totalPriceWithTaxes = Value(totalPriceWithTaxes),
-       state = Value(state),
+       totalPriceWithoutTaxes = Value(totalPriceWithoutTaxes),
        restTable = Value(restTable);
   static Insertable<Order> custom({
     Expression<int>? id,
@@ -1783,8 +1748,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<double>? totalPrice,
     Expression<double>? payedPrice,
     Expression<double>? totalTaxes,
-    Expression<double>? totalPriceWithTaxes,
-    Expression<int>? state,
+    Expression<double>? totalPriceWithoutTaxes,
     Expression<int>? restTable,
   }) {
     return RawValuesInsertable({
@@ -1794,9 +1758,8 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (totalPrice != null) 'total_price': totalPrice,
       if (payedPrice != null) 'payed_price': payedPrice,
       if (totalTaxes != null) 'total_taxes': totalTaxes,
-      if (totalPriceWithTaxes != null)
-        'total_price_with_taxes': totalPriceWithTaxes,
-      if (state != null) 'state': state,
+      if (totalPriceWithoutTaxes != null)
+        'total_price_without_taxes': totalPriceWithoutTaxes,
       if (restTable != null) 'rest_table': restTable,
     });
   }
@@ -1808,8 +1771,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<double>? totalPrice,
     Value<double>? payedPrice,
     Value<double>? totalTaxes,
-    Value<double>? totalPriceWithTaxes,
-    Value<int>? state,
+    Value<double>? totalPriceWithoutTaxes,
     Value<int>? restTable,
   }) {
     return OrdersCompanion(
@@ -1819,8 +1781,8 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       totalPrice: totalPrice ?? this.totalPrice,
       payedPrice: payedPrice ?? this.payedPrice,
       totalTaxes: totalTaxes ?? this.totalTaxes,
-      totalPriceWithTaxes: totalPriceWithTaxes ?? this.totalPriceWithTaxes,
-      state: state ?? this.state,
+      totalPriceWithoutTaxes:
+          totalPriceWithoutTaxes ?? this.totalPriceWithoutTaxes,
       restTable: restTable ?? this.restTable,
     );
   }
@@ -1846,13 +1808,10 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     if (totalTaxes.present) {
       map['total_taxes'] = Variable<double>(totalTaxes.value);
     }
-    if (totalPriceWithTaxes.present) {
-      map['total_price_with_taxes'] = Variable<double>(
-        totalPriceWithTaxes.value,
+    if (totalPriceWithoutTaxes.present) {
+      map['total_price_without_taxes'] = Variable<double>(
+        totalPriceWithoutTaxes.value,
       );
-    }
-    if (state.present) {
-      map['state'] = Variable<int>(state.value);
     }
     if (restTable.present) {
       map['rest_table'] = Variable<int>(restTable.value);
@@ -1869,8 +1828,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('totalPrice: $totalPrice, ')
           ..write('payedPrice: $payedPrice, ')
           ..write('totalTaxes: $totalTaxes, ')
-          ..write('totalPriceWithTaxes: $totalPriceWithTaxes, ')
-          ..write('state: $state, ')
+          ..write('totalPriceWithoutTaxes: $totalPriceWithoutTaxes, ')
           ..write('restTable: $restTable')
           ..write(')'))
         .toString();
@@ -3284,7 +3242,7 @@ class $$RestTablesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$RestTablesTable, RestTable>(table),
                   $$RestTablesTableReferences(db, table, e),
                 ),
               )
@@ -3570,7 +3528,9 @@ class $$ProductTypesTableTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$ProductTypesTableTable, ProductTypesTableData>(
+                    table,
+                  ),
                   $$ProductTypesTableTableReferences(db, table, e),
                 ),
               )
@@ -3819,8 +3779,10 @@ class $$TaxesTableTableManager
               }) => TaxesCompanion.insert(id: id, name: name, rate: rate),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $$TaxesTableReferences(db, table, e)),
+                (e) => (
+                  e.readTable<$TaxesTable, Taxe>(table),
+                  $$TaxesTableReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback: ({productsClassRefs = false}) {
@@ -4237,7 +4199,7 @@ class $$ProductsClassTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$ProductsClassTable, ProductsClassData>(table),
                   $$ProductsClassTableReferences(db, table, e),
                 ),
               )
@@ -4322,8 +4284,7 @@ typedef $$OrdersTableCreateCompanionBuilder =
       required double totalPrice,
       required double payedPrice,
       required double totalTaxes,
-      required double totalPriceWithTaxes,
-      required int state,
+      required double totalPriceWithoutTaxes,
       required int restTable,
     });
 typedef $$OrdersTableUpdateCompanionBuilder =
@@ -4334,8 +4295,7 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<double> totalPrice,
       Value<double> payedPrice,
       Value<double> totalTaxes,
-      Value<double> totalPriceWithTaxes,
-      Value<int> state,
+      Value<double> totalPriceWithoutTaxes,
       Value<int> restTable,
     });
 
@@ -4437,13 +4397,8 @@ class $$OrdersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get totalPriceWithTaxes => $composableBuilder(
-    column: $table.totalPriceWithTaxes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get state => $composableBuilder(
-    column: $table.state,
+  ColumnFilters<double> get totalPriceWithoutTaxes => $composableBuilder(
+    column: $table.totalPriceWithoutTaxes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4560,13 +4515,8 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get totalPriceWithTaxes => $composableBuilder(
-    column: $table.totalPriceWithTaxes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get state => $composableBuilder(
-    column: $table.state,
+  ColumnOrderings<double> get totalPriceWithoutTaxes => $composableBuilder(
+    column: $table.totalPriceWithoutTaxes,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4627,13 +4577,10 @@ class $$OrdersTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<double> get totalPriceWithTaxes => $composableBuilder(
-    column: $table.totalPriceWithTaxes,
+  GeneratedColumn<double> get totalPriceWithoutTaxes => $composableBuilder(
+    column: $table.totalPriceWithoutTaxes,
     builder: (column) => column,
   );
-
-  GeneratedColumn<int> get state =>
-      $composableBuilder(column: $table.state, builder: (column) => column);
 
   $$RestTablesTableAnnotationComposer get restTable {
     final $$RestTablesTableAnnotationComposer composer = $composerBuilder(
@@ -4747,8 +4694,7 @@ class $$OrdersTableTableManager
                 Value<double> totalPrice = const Value.absent(),
                 Value<double> payedPrice = const Value.absent(),
                 Value<double> totalTaxes = const Value.absent(),
-                Value<double> totalPriceWithTaxes = const Value.absent(),
-                Value<int> state = const Value.absent(),
+                Value<double> totalPriceWithoutTaxes = const Value.absent(),
                 Value<int> restTable = const Value.absent(),
               }) => OrdersCompanion(
                 id: id,
@@ -4757,8 +4703,7 @@ class $$OrdersTableTableManager
                 totalPrice: totalPrice,
                 payedPrice: payedPrice,
                 totalTaxes: totalTaxes,
-                totalPriceWithTaxes: totalPriceWithTaxes,
-                state: state,
+                totalPriceWithoutTaxes: totalPriceWithoutTaxes,
                 restTable: restTable,
               ),
           createCompanionCallback:
@@ -4769,8 +4714,7 @@ class $$OrdersTableTableManager
                 required double totalPrice,
                 required double payedPrice,
                 required double totalTaxes,
-                required double totalPriceWithTaxes,
-                required int state,
+                required double totalPriceWithoutTaxes,
                 required int restTable,
               }) => OrdersCompanion.insert(
                 id: id,
@@ -4779,14 +4723,15 @@ class $$OrdersTableTableManager
                 totalPrice: totalPrice,
                 payedPrice: payedPrice,
                 totalTaxes: totalTaxes,
-                totalPriceWithTaxes: totalPriceWithTaxes,
-                state: state,
+                totalPriceWithoutTaxes: totalPriceWithoutTaxes,
                 restTable: restTable,
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $$OrdersTableReferences(db, table, e)),
+                (e) => (
+                  e.readTable<$OrdersTable, Order>(table),
+                  $$OrdersTableReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -5209,7 +5154,7 @@ class $$OrderLinesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$OrderLinesTable, OrderLine>(table),
                   $$OrderLinesTableReferences(db, table, e),
                 ),
               )
@@ -5526,7 +5471,7 @@ class $$PaymentsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$PaymentsTable, Payment>(table),
                   $$PaymentsTableReferences(db, table, e),
                 ),
               )
@@ -5721,7 +5666,16 @@ class $$TicketsTableTableManager
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$TicketsTable, Ticket>(table),
+                  BaseReferences<_$AppDatabase, $TicketsTable, Ticket>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
